@@ -18,6 +18,33 @@
   color: #1a1a1a;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.refresh-btn {
+  background: #4a90d9;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.refresh-btn:hover {
+  background: #357abd;
+}
+
+.refresh-btn:disabled {
+  background: #a0c4e8;
+  cursor: not-allowed;
+}
+
 .back-link {
   color: #4a90d9;
   text-decoration: none;
@@ -85,6 +112,32 @@
   padding: 60px 20px;
   text-align: center;
   color: #888;
+}
+
+.loading-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: #666;
+}
+
+.error-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: #e53935;
+}
+
+.error-state button {
+  margin-top: 16px;
+  background: #4a90d9;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.error-state button:hover {
+  background: #357abd;
 }
 
 .request-items {

@@ -2,70 +2,70 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Admin.css';
 
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxOSlbxs5HUbkHPIWv6nywpoCviMJoOAEjrSawpOYejo41vTnSOiQzAxkxDQZiuhZporw/exec';
+
 function Admin() {
   const [requests, setRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadRequests();
   }, []);
 
-  const loadRequests = () => {
-    const saved = JSON.parse(localStorage.getItem('quoteRequests') || '[]');
-    // 최신순 정렬
-    saved.sort((a, b) => b.id - a.id);
-    setRequests(saved);
-  };
+  const loadRequests = async () => {
+    setIsLoading(true);
+    setError(null);
 
-  const handleDelete = (id) => {
-    if (window.confirm('정말 삭제하시겠습니까?')) {
-      const updated = requests.filter((req) => req.id !== id);
-      localStorage.setItem('quoteRequests', JSON.stringify(updated));
-      setRequests(updated);
-      if (selectedRequest?.id === id) {
-        setSelectedRequest(null);
-      }
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL);
+      const data = await response.json();
+
+      // 최신순 정렬
+      const sorted = data.sort((a, b) => b.id - a.id);
+      setRequests(sorted);
+    } catch (err) {
+      console.error('Error loading requests:', err);
+      setError('데이터를 불러오는데 실패했습니다.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleDeleteAll = () => {
-    if (window.confirm('모든 견적 요청을 삭제하시겠습니까?')) {
-      localStorage.removeItem('quoteRequests');
-      setRequests([]);
-      setSelectedRequest(null);
-    }
-  };
-
-  const formatDate = (isoString) => {
-    const date = new Date(isoString);
-    return date.toLocaleString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    return String(dateString);
   };
 
   return (
     <div className="admin-container">
       <header className="admin-header">
         <h1>견적 요청 관리</h1>
-        <Link to="/" className="back-link">← 견적 폼으로 돌아가기</Link>
+        <div className="header-actions">
+          <button className="refresh-btn" onClick={loadRequests} disabled={isLoading}>
+            {isLoading ? '로딩 중...' : '새로고침'}
+          </button>
+          <Link to="/" className="back-link">← 견적 폼으로 돌아가기</Link>
+        </div>
       </header>
 
       <div className="admin-content">
         <div className="requests-list">
           <div className="list-header">
             <h2>요청 목록 ({requests.length}건)</h2>
-            {requests.length > 0 && (
-              <button className="delete-all-btn" onClick={handleDeleteAll}>
-                전체 삭제
-              </button>
-            )}
           </div>
 
-          {requests.length === 0 ? (
+          {isLoading ? (
+            <div className="loading-state">
+              <p>데이터를 불러오는 중...</p>
+            </div>
+          ) : error ? (
+            <div className="error-state">
+              <p>{error}</p>
+              <button onClick={loadRequests}>다시 시도</button>
+            </div>
+          ) : requests.length === 0 ? (
             <div className="empty-state">
               <p>아직 견적 요청이 없습니다.</p>
             </div>
@@ -96,12 +96,6 @@ function Admin() {
             <>
               <div className="detail-header">
                 <h2>상세 정보</h2>
-                <button
-                  className="delete-btn"
-                  onClick={() => handleDelete(selectedRequest.id)}
-                >
-                  삭제
-                </button>
               </div>
 
               <div className="detail-content">

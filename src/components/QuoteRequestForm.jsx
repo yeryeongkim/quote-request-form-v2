@@ -17,7 +17,7 @@ function QuoteRequestForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxb-k-iNE6LEAscls_zdiwRqDiWWcyMJ8qXyk2-2pWyAuBFxVvTY8UZPIlRFP8uOikaCA/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxOSlbxs5HUbkHPIWv6nywpoCviMJoOAEjrSawpOYejo41vTnSOiQzAxkxDQZiuhZporw/exec';
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
