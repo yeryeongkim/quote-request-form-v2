@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Admin.css';
 
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxOSlbxs5HUbkHPIWv6nywpoCviMJoOAEjrSawpOYejo41vTnSOiQzAxkxDQZiuhZporw/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwFxfeFkiou8EvgWGPVRCHhF7A4Ujo9PLhUdTuPBkKt5frMnU2b71lAZORjei9EZCoOxg/exec';
 
 function Admin() {
   const [requests, setRequests] = useState([]);
@@ -19,15 +19,26 @@ function Admin() {
     setError(null);
 
     try {
-      const response = await fetch(GOOGLE_SCRIPT_URL);
-      const data = await response.json();
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'GET',
+        redirect: 'follow',
+      });
+
+      const text = await response.text();
+      console.log('Response:', text);
+
+      const data = JSON.parse(text);
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
       // 최신순 정렬
-      const sorted = data.sort((a, b) => b.id - a.id);
+      const sorted = Array.isArray(data) ? data.sort((a, b) => b.id - a.id) : [];
       setRequests(sorted);
     } catch (err) {
       console.error('Error loading requests:', err);
-      setError('데이터를 불러오는데 실패했습니다.');
+      setError('데이터를 불러오는데 실패했습니다. 콘솔을 확인해주세요.');
     } finally {
       setIsLoading(false);
     }
