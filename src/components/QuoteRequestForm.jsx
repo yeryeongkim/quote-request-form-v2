@@ -1,8 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import './QuoteRequestForm.css';
 
 function QuoteRequestForm() {
+  const location = useLocation();
+  const selectedSpaces = location.state?.selectedSpaces || [];
+
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
@@ -16,8 +20,6 @@ function QuoteRequestForm() {
   const [errors, setErrors] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwFxfeFkiou8EvgWGPVRCHhF7A4Ujo9PLhUdTuPBkKt5frMnU2b71lAZORjei9EZCoOxg/exec';
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -76,24 +78,24 @@ function QuoteRequestForm() {
       setIsLoading(true);
 
       try {
-        // 구글 스프레드시트에 저장
-        await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            phone: formData.phone,
-            desiredDate: formData.desiredDate,
-            desiredTime: formData.desiredTime,
-            numberOfPeople: formData.numberOfPeople,
-            requests: formData.requests,
-          }),
-        });
+        // Supabase에 저장
+        const { error } = await supabase
+          .from('quote_requests')
+          .insert([
+            {
+              email: formData.email,
+              phone: formData.phone,
+              desired_date: formData.desiredDate,
+              desired_time: formData.desiredTime,
+              number_of_people: parseInt(formData.numberOfPeople),
+              requests: formData.requests,
+              selected_spaces: selectedSpaces.length > 0 ? JSON.stringify(selectedSpaces) : null,
+            },
+          ]);
 
-        console.log('Form submitted to Google Sheets');
+        if (error) throw error;
+
+        console.log('Form submitted to Supabase');
         setIsSubmitted(true);
       } catch (error) {
         console.error('Error submitting form:', error);
@@ -135,14 +137,28 @@ function QuoteRequestForm() {
   return (
     <div className="quote-form-container">
       <div className="form-header">
-        <div>
-          <h1>최종 견적 요청</h1>
-          <p className="form-description">공간 후보 리스트에 대한 견적을 요청합니다.</p>
-        </div>
-        <Link to="/admin" className="admin-link">관리자</Link>
+        <Link to="/" className="back-link">← 공간 검색으로</Link>
+        <h1>최종 견적 요청</h1>
+        <p className="form-description">선택한 공간에 대한 견적을 요청합니다.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="quote-form">
+        {selectedSpaces.length > 0 && (
+          <div className="selected-spaces-section">
+            <h3>선택된 공간 ({selectedSpaces.length}개)</h3>
+            <div className="selected-spaces-list">
+              {selectedSpaces.map((space) => (
+                <div key={space.id} className="selected-space-item">
+                  <span className="space-item-name">{space.name}</span>
+                  <span className="space-item-details">
+                    {space.region || space.country} · {space.capacity}명
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="form-section">
           <h3>연락처 정보</h3>
 

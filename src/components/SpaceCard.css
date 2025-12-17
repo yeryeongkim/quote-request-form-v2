@@ -1,0 +1,69 @@
+.space-card {
+  background: var(--sc-bg-card);
+  border: 2px solid var(--sc-border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  position: relative;
+}
+
+.space-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.space-card.selectable {
+  cursor: pointer;
+}
+
+.space-card.selectable:hover {
+  border-color: var(--sc-primary-light);
+}
+
+.space-card.selected {
+  border-color: var(--sc-primary);
+  background: var(--sc-primary-light);
+}
+
+.space-checkbox {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.space-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--sc-primary);
+}
+
+.space-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sc-text-primary);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.space-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.space-detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--sc-text-secondary);
+}
+
+.detail-icon {
+  font-size: 14px;
+}
+
+.detail-text {
+  color: var(--sc-text-secondary);
+}

@@ -1,0 +1,250 @@
+.host-dashboard-container {
+  min-height: 100vh;
+  background: var(--sc-bg-body);
+}
+
+.dashboard-subheader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-subheader h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--sc-text-primary);
+}
+
+.template-settings-btn {
+  background: var(--sc-primary-light);
+  color: var(--sc-primary);
+  border: 1px solid var(--sc-primary);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.template-settings-btn:hover {
+  background: var(--sc-primary);
+  color: #fff;
+}
+
+.dashboard-main {
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: var(--sc-text-secondary);
+}
+
+.error-state button {
+  margin-top: 16px;
+  background: var(--sc-primary);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.empty-state h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--sc-text-primary);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: var(--sc-text-secondary);
+}
+
+.requests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+.request-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--sc-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.request-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--sc-border);
+  background: var(--sc-bg-body);
+}
+
+.request-date {
+  font-size: 13px;
+  color: var(--sc-text-tertiary);
+}
+
+.status-badge {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.status-badge.pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-badge.registered {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.status-badge.approved {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.status-badge.sent {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
+.status-badge.waiting-admin {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.info-row {
+  display: flex;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--sc-border);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-row.requests-row {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 13px;
+  color: var(--sc-text-tertiary);
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.info-value {
+  font-size: 14px;
+  color: var(--sc-text-primary);
+  font-weight: 500;
+}
+
+.requests-row .info-value {
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.card-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--sc-border);
+}
+
+.create-quote-btn,
+.view-quote-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.create-quote-btn {
+  background: var(--sc-primary);
+  color: #fff;
+}
+
+.create-quote-btn:hover {
+  background: var(--sc-primary-hover);
+}
+
+.view-quote-btn {
+  background: var(--sc-bg-body);
+  color: var(--sc-text-primary);
+  border: 1px solid var(--sc-border);
+}
+
+.view-quote-btn:hover {
+  background: var(--sc-primary-light);
+  border-color: var(--sc-primary);
+  color: var(--sc-primary);
+}
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .header-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .dashboard-main {
+    padding: 16px;
+  }
+
+  .requests-grid {
+    grid-template-columns: 1fr;
+  }
+}

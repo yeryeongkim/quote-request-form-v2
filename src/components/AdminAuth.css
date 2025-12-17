@@ -1,0 +1,129 @@
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--sc-bg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--sc-bg-card);
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.auth-card h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--sc-text-primary);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.auth-description {
+  color: var(--sc-text-secondary);
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.auth-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auth-form label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--sc-text-primary);
+}
+
+.auth-form input {
+  padding: 14px 16px;
+  font-size: 16px;
+  border: 2px solid var(--sc-border);
+  border-radius: 10px;
+  background: var(--sc-bg);
+  color: var(--sc-text-primary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: var(--sc-primary);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+}
+
+.auth-form input::placeholder {
+  color: var(--sc-text-tertiary);
+}
+
+.auth-form input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-error {
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: var(--sc-error);
+  font-size: 14px;
+  text-align: center;
+}
+
+.auth-btn {
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--sc-primary);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  margin-top: 8px;
+}
+
+.auth-btn:hover:not(:disabled) {
+  background: var(--sc-primary-hover);
+  transform: translateY(-1px);
+}
+
+.auth-btn:disabled {
+  background: var(--sc-text-tertiary);
+  cursor: not-allowed;
+}
+
+.auth-links {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.auth-links p {
+  font-size: 14px;
+  color: var(--sc-text-secondary);
+  margin: 8px 0;
+}
+
+.auth-links a {
+  color: var(--sc-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-links a:hover {
+  text-decoration: underline;
+}

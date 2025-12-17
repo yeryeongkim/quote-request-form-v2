@@ -4,11 +4,31 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* SpaceCloud Design System Colors - Light Theme */
+  --sc-primary: #7C3AED;
+  --sc-primary-hover: #6D28D9;
+  --sc-primary-light: #EDE9FE;
+  --sc-bg-body: #F5F5F7;
+  --sc-bg-card: #FFFFFF;
+  --sc-bg-card-hover: #F9FAFB;
+  --sc-bg-input: #FFFFFF;
+  --sc-text-primary: #1A1A1A;
+  --sc-text-secondary: #666666;
+  --sc-text-tertiary: #999999;
+  --sc-border: #E5E5E5;
+  --sc-border-focus: #7C3AED;
+  --sc-link: #7C3AED;
+  --sc-success: #10B981;
+  --sc-error: #EF4444;
+  --sc-warning: #F59E0B;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #f5f7fa;
-  color: #1a1a1a;
+  background: var(--sc-bg-body);
+  color: var(--sc-text-primary);
   line-height: 1.5;
 }

@@ -76,19 +76,28 @@ function Admin() {
 
       if (requestsError) throw requestsError;
 
-      const mapped = requestsData.map((item) => ({
-        id: item.id,
-        email: item.email,
-        phone: item.phone,
-        desiredDate: item.desired_date,
-        desiredTime: item.desired_time,
-        numberOfPeople: item.number_of_people,
-        requests: item.requests,
-        submittedAt: item.created_at,
-        assignedHostId: item.assigned_host_id,
-        selectedSpaces: item.selected_spaces ? JSON.parse(item.selected_spaces) : [],
-        status: item.status || 'waiting',
-      }));
+      // Load host_quotes for payment_method mapping
+      const { data: quotesData } = await supabase
+        .from('host_quotes')
+        .select('quote_request_id, payment_method');
+
+      const mapped = requestsData.map((item) => {
+        const hostQuote = quotesData?.find(q => q.quote_request_id === item.id);
+        return {
+          id: item.id,
+          email: item.email,
+          phone: item.phone,
+          desiredDate: item.desired_date,
+          desiredTime: item.desired_time,
+          numberOfPeople: item.number_of_people,
+          requests: item.requests,
+          submittedAt: item.created_at,
+          assignedHostId: item.assigned_host_id,
+          selectedSpaces: item.selected_spaces ? JSON.parse(item.selected_spaces) : [],
+          status: item.status || 'waiting',
+          paymentMethod: hostQuote?.payment_method || null,
+        };
+      });
 
       setRequests(mapped);
 
@@ -164,8 +173,12 @@ function Admin() {
     if (statusFilter !== 'all' && req.status !== statusFilter) {
       return false;
     }
-    // 결제수단 필터는 hostQuote 정보가 필요하므로 서버에서 처리하거나 로컬에서 처리
-    // 일단은 기본 필터만 적용
+    // 결제수단 필터
+    if (paymentFilter !== 'all') {
+      // 견적이 없는 경우 필터링에서 제외
+      if (!req.paymentMethod) return false;
+      if (req.paymentMethod !== paymentFilter) return false;
+    }
     return true;
   });
 
@@ -193,20 +206,25 @@ function Admin() {
         return;
       }
 
+      // Update both assigned_host_id and status to 'in_progress'
       const { error } = await supabase
         .from('quote_requests')
-        .update({ assigned_host_id: hostId || null })
+        .update({
+          assigned_host_id: hostId || null,
+          status: hostId ? 'in_progress' : 'waiting'
+        })
         .eq('id', requestId);
 
       if (error) throw error;
 
       // Update local state
+      const newStatus = hostId ? 'in_progress' : 'waiting';
       setRequests(prev => prev.map(req =>
-        req.id === requestId ? { ...req, assignedHostId: hostId } : req
+        req.id === requestId ? { ...req, assignedHostId: hostId, status: newStatus } : req
       ));
 
       if (selectedRequest?.id === requestId) {
-        setSelectedRequest(prev => ({ ...prev, assignedHostId: hostId }));
+        setSelectedRequest(prev => ({ ...prev, assignedHostId: hostId, status: newStatus }));
       }
 
       alert('호스트가 연결되었습니다.');
@@ -448,6 +466,11 @@ function Admin() {
                     >
                       {getStatusLabel(req.status)}
                     </span>
+                    {req.paymentMethod && (
+                      <span className={`payment-badge ${req.paymentMethod}`}>
+                        {req.paymentMethod === 'online' ? '온라인' : '현장'}
+                      </span>
+                    )}
                   </div>
                 </li>
               ))}
