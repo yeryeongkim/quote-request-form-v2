@@ -4,30 +4,30 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--sc-bg-overlay);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
-  padding: 20px;
+  z-index: var(--sc-z-modal);
+  padding: var(--sc-space-5);
 }
 
 .template-modal {
-  background: #fff;
-  border-radius: 16px;
+  background: var(--sc-bg-card);
+  border-radius: var(--sc-radius-xl);
   width: 100%;
   max-width: 480px;
   max-height: 90vh;
   overflow-y: auto;
-  padding: 32px;
+  padding: var(--sc-space-8);
   position: relative;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--sc-shadow-xl);
 }
 
 .template-modal-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: var(--sc-space-4);
+  right: var(--sc-space-4);
   background: none;
   border: none;
   font-size: 28px;
@@ -38,63 +38,63 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s;
+  border-radius: var(--sc-radius-full);
+  transition: all var(--sc-transition-normal);
 }
 
 .template-modal-close:hover {
-  background: var(--sc-bg-body);
+  background: var(--sc-bg-gray);
   color: var(--sc-text-primary);
 }
 
 .template-modal h2 {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: var(--sc-font-size-2xl);
+  font-weight: var(--sc-font-bold);
   color: var(--sc-text-primary);
-  margin-bottom: 8px;
+  margin-bottom: var(--sc-space-2);
 }
 
 .template-description {
-  font-size: 14px;
+  font-size: var(--sc-font-size-base);
   color: var(--sc-text-secondary);
-  margin-bottom: 24px;
+  margin-bottom: var(--sc-space-6);
 }
 
 .template-error {
-  background: #fef2f2;
+  background: var(--sc-error-light);
   color: var(--sc-error);
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  font-size: 14px;
-  border: 1px solid #fee2e2;
+  padding: var(--sc-space-3) var(--sc-space-4);
+  border-radius: var(--sc-radius-md);
+  margin-bottom: var(--sc-space-4);
+  font-size: var(--sc-font-size-base);
+  border: 1px solid var(--sc-error);
 }
 
 .template-success {
-  background: #f0fdf4;
-  color: #16a34a;
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  font-size: 14px;
-  border: 1px solid #dcfce7;
+  background: var(--sc-success-light);
+  color: var(--sc-success);
+  padding: var(--sc-space-3) var(--sc-space-4);
+  border-radius: var(--sc-radius-md);
+  margin-bottom: var(--sc-space-4);
+  font-size: var(--sc-font-size-base);
+  border: 1px solid var(--sc-success);
 }
 
 .template-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--sc-space-5);
 }
 
 .template-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--sc-space-2);
 }
 
 .template-label {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--sc-font-size-base);
+  font-weight: var(--sc-font-medium);
   color: var(--sc-text-primary);
 }
 
@@ -115,9 +115,9 @@
   justify-content: center;
   height: 150px;
   border: 2px dashed var(--sc-border);
-  border-radius: 12px;
-  background: var(--sc-bg-body);
-  transition: all 0.2s;
+  border-radius: var(--sc-radius-lg);
+  background: var(--sc-bg-gray);
+  transition: all var(--sc-transition-normal);
 }
 
 .template-modal .upload-placeholder:hover {
@@ -128,16 +128,16 @@
 .template-modal .upload-icon {
   font-size: 28px;
   color: var(--sc-text-tertiary);
-  margin-bottom: 6px;
+  margin-bottom: var(--sc-space-2);
 }
 
 .template-modal .upload-placeholder span {
   color: var(--sc-text-secondary);
-  font-size: 14px;
+  font-size: var(--sc-font-size-base);
 }
 
 .template-modal .upload-hint {
-  font-size: 11px;
+  font-size: var(--sc-font-size-xs);
   color: var(--sc-text-tertiary);
   margin-top: 2px;
 }
@@ -150,21 +150,21 @@
   width: 100%;
   height: 150px;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: var(--sc-radius-lg);
 }
 
 .template-modal .remove-photo-btn {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
+  top: var(--sc-space-2);
+  right: var(--sc-space-2);
+  background: var(--sc-bg-overlay);
+  color: var(--sc-text-inverse);
   border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
+  padding: var(--sc-space-2) var(--sc-space-3);
+  border-radius: var(--sc-radius-sm);
+  font-size: var(--sc-font-size-xs);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--sc-transition-normal);
 }
 
 .template-modal .remove-photo-btn:hover {
@@ -174,31 +174,31 @@
 /* Price Row */
 .price-row {
   display: flex;
-  gap: 12px;
+  gap: var(--sc-space-3);
 }
 
 .price-input {
   flex: 1;
-  padding: 12px 16px;
+  padding: var(--sc-space-3) var(--sc-space-4);
   border: 1px solid var(--sc-border);
-  border-radius: 8px;
-  font-size: 15px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  border-radius: var(--sc-radius-md);
+  font-size: var(--sc-font-size-md);
+  transition: border-color var(--sc-transition-normal), box-shadow var(--sc-transition-normal);
 }
 
 .price-input:focus {
   outline: none;
   border-color: var(--sc-primary);
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  box-shadow: 0 0 0 3px var(--sc-primary-light);
 }
 
 .currency-select {
   width: 120px;
-  padding: 12px 16px;
+  padding: var(--sc-space-3) var(--sc-space-4);
   border: 1px solid var(--sc-border);
-  border-radius: 8px;
-  font-size: 15px;
-  background: #fff;
+  border-radius: var(--sc-radius-md);
+  font-size: var(--sc-font-size-md);
+  background: var(--sc-bg-card);
   cursor: pointer;
 }
 
@@ -207,29 +207,41 @@
   border-color: var(--sc-primary);
 }
 
+.currency-fixed-display {
+  font-size: var(--sc-font-size-base);
+  font-weight: var(--sc-font-medium);
+  color: var(--sc-text-secondary);
+  background: var(--sc-bg-gray);
+  padding: var(--sc-space-3) var(--sc-space-4);
+  border-radius: var(--sc-radius-md);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+}
+
 /* Textarea */
 .template-form textarea {
   width: 100%;
-  padding: 12px 16px;
+  padding: var(--sc-space-3) var(--sc-space-4);
   border: 1px solid var(--sc-border);
-  border-radius: 8px;
-  font-size: 15px;
+  border-radius: var(--sc-radius-md);
+  font-size: var(--sc-font-size-md);
   resize: vertical;
   min-height: 80px;
   box-sizing: border-box;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--sc-transition-normal), box-shadow var(--sc-transition-normal);
 }
 
 .template-form textarea:focus {
   outline: none;
   border-color: var(--sc-primary);
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  box-shadow: 0 0 0 3px var(--sc-primary-light);
 }
 
 /* Payment Options */
 .template-modal .payment-options {
   display: flex;
-  gap: 12px;
+  gap: var(--sc-space-3);
 }
 
 .template-modal .payment-option {
@@ -246,13 +258,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
+  padding: var(--sc-space-6) var(--sc-space-4);
   border: 2px solid var(--sc-border);
-  border-radius: 12px;
-  background: #fff;
-  transition: all 0.2s;
+  border-radius: var(--sc-radius-lg);
+  background: var(--sc-bg-card);
+  transition: all var(--sc-transition-normal);
   text-align: center;
-  gap: 8px;
+  gap: var(--sc-space-2);
 }
 
 .template-modal .payment-option:hover .option-content {
@@ -266,34 +278,34 @@
 
 .template-modal .option-icon {
   font-size: 32px;
-  margin-bottom: 4px;
+  margin-bottom: var(--sc-space-1);
 }
 
 .template-modal .option-label {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--sc-font-size-lg);
+  font-weight: var(--sc-font-semibold);
   color: var(--sc-text-primary);
 }
 
 .template-modal .option-desc {
-  font-size: 13px;
+  font-size: var(--sc-font-size-sm);
   color: var(--sc-text-secondary);
-  line-height: 1.4;
+  line-height: var(--sc-leading-tight);
 }
 
 /* Submit Button */
 .template-submit-btn {
   width: 100%;
   background: var(--sc-primary);
-  color: #fff;
+  color: var(--sc-text-inverse);
   border: none;
   padding: 14px;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: var(--sc-radius-md);
+  font-size: var(--sc-font-size-lg);
+  font-weight: var(--sc-font-semibold);
   cursor: pointer;
-  transition: background 0.2s;
-  margin-top: 8px;
+  transition: background var(--sc-transition-normal);
+  margin-top: var(--sc-space-2);
 }
 
 .template-submit-btn:hover:not(:disabled) {
@@ -307,7 +319,7 @@
 
 @media (max-width: 500px) {
   .template-modal {
-    padding: 24px 20px;
+    padding: var(--sc-space-6) var(--sc-space-5);
   }
 
   .price-row {

@@ -1,45 +1,290 @@
 .host-bookings-container {
   min-height: 100vh;
-  background: var(--sc-bg-body);
+  background: var(--sc-bg-gray);
 }
 
 .bookings-main {
-  padding: 32px;
+  padding: var(--sc-space-8);
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.coming-soon {
+.loading-state,
+.error-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
-  text-align: center;
+  min-height: 200px;
+  color: var(--sc-text-secondary);
 }
 
-.coming-soon-icon {
-  font-size: 64px;
-  margin-bottom: 24px;
+.error-state button {
+  margin-top: var(--sc-space-4);
+  background: var(--sc-primary);
+  color: var(--sc-text-inverse);
+  border: none;
+  padding: var(--sc-space-3) var(--sc-space-5);
+  border-radius: var(--sc-radius-sm);
+  cursor: pointer;
 }
 
-.coming-soon h2 {
-  font-size: 24px;
-  font-weight: 700;
+/* Sections */
+.bookings-section,
+.settlements-section {
+  margin-bottom: var(--sc-space-10);
+}
+
+.bookings-section h2,
+.settlements-section h2 {
+  font-size: var(--sc-font-size-2xl);
+  font-weight: var(--sc-font-bold);
   color: var(--sc-text-primary);
-  margin-bottom: 8px;
+  margin-bottom: var(--sc-space-5);
 }
 
-.coming-soon p {
-  font-size: 16px;
+/* Booking Tabs */
+.booking-tabs {
+  display: flex;
+  gap: var(--sc-space-2);
+  margin-bottom: var(--sc-space-6);
+  border-bottom: 1px solid var(--sc-border);
+  padding-bottom: var(--sc-space-1);
+}
+
+.booking-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-2);
+  padding: var(--sc-space-3) var(--sc-space-5);
+  background: none;
+  border: none;
+  font-size: var(--sc-font-size-base);
+  font-weight: var(--sc-font-medium);
+  color: var(--sc-text-tertiary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all var(--sc-transition-normal);
+}
+
+.booking-tab:hover {
+  color: var(--sc-text-primary);
+}
+
+.booking-tab.active {
+  color: var(--sc-primary);
+  border-bottom-color: var(--sc-primary);
+}
+
+.tab-count {
+  background: var(--sc-bg-gray);
+  color: var(--sc-text-tertiary);
+  padding: 2px var(--sc-space-2);
+  border-radius: var(--sc-radius-full);
+  font-size: var(--sc-font-size-xs);
+  font-weight: var(--sc-font-semibold);
+}
+
+.booking-tab.active .tab-count {
+  background: var(--sc-primary-light);
+  color: var(--sc-primary);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: var(--sc-space-12) var(--sc-space-5);
+  background: var(--sc-bg-card);
+  border-radius: var(--sc-radius-lg);
+  border: 1px solid var(--sc-border);
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: var(--sc-space-4);
+}
+
+.empty-state h3 {
+  font-size: var(--sc-font-size-lg);
+  font-weight: var(--sc-font-medium);
   color: var(--sc-text-secondary);
 }
 
-.loading-state {
+/* Booking Cards */
+.booking-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--sc-space-5);
+}
+
+.booking-card {
+  background: var(--sc-bg-card);
+  border-radius: var(--sc-radius-lg);
+  border: 1px solid var(--sc-border);
+  box-shadow: var(--sc-shadow-xs);
+  overflow: hidden;
+  transition: box-shadow var(--sc-transition-normal);
+}
+
+.booking-card:hover {
+  box-shadow: var(--sc-shadow-md);
+}
+
+.booking-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--sc-space-4) var(--sc-space-5);
+  background: var(--sc-bg-gray);
+  border-bottom: 1px solid var(--sc-border);
+}
+
+.booking-date {
+  font-size: var(--sc-font-size-sm);
+  color: var(--sc-text-tertiary);
+}
+
+.booking-status-badge {
+  font-size: var(--sc-font-size-xs);
+  font-weight: var(--sc-font-medium);
+  padding: var(--sc-space-1) var(--sc-space-3);
+  border-radius: var(--sc-radius-full);
+}
+
+.booking-status-badge.confirmed {
+  background: var(--sc-success-light);
+  color: var(--sc-success);
+}
+
+.booking-status-badge.cancelled {
+  background: var(--sc-error-light);
+  color: var(--sc-error);
+}
+
+.booking-status-badge.completed {
+  background: var(--sc-info-light);
+  color: var(--sc-info);
+}
+
+.booking-card-body {
+  padding: var(--sc-space-5);
+}
+
+.booking-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--sc-space-2) 0;
+  border-bottom: 1px solid var(--sc-border);
+}
+
+.booking-info-row:last-child {
+  border-bottom: none;
+}
+
+.booking-label {
+  font-size: var(--sc-font-size-sm);
+  color: var(--sc-text-tertiary);
+}
+
+.booking-value {
+  font-size: var(--sc-font-size-base);
+  color: var(--sc-text-primary);
+  font-weight: var(--sc-font-medium);
+}
+
+.booking-value.amount {
+  color: var(--sc-primary);
+  font-weight: var(--sc-font-bold);
+}
+
+/* Settlement Cards */
+.settlement-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--sc-space-5);
+}
+
+.settlement-card {
+  background: var(--sc-bg-card);
+  border-radius: var(--sc-radius-lg);
+  border: 1px solid var(--sc-border);
+  box-shadow: var(--sc-shadow-xs);
+  overflow: hidden;
+  transition: box-shadow var(--sc-transition-normal);
+}
+
+.settlement-card:hover {
+  box-shadow: var(--sc-shadow-md);
+}
+
+.settlement-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--sc-space-4) var(--sc-space-5);
+  background: var(--sc-bg-gray);
+  border-bottom: 1px solid var(--sc-border);
+}
+
+.settlement-badge {
+  font-size: var(--sc-font-size-xs);
+  font-weight: var(--sc-font-semibold);
+  padding: var(--sc-space-1) var(--sc-space-3);
+  border-radius: var(--sc-radius-full);
+}
+
+.settlement-badge.pending {
+  background: var(--sc-warning-light);
+  color: var(--sc-warning);
+}
+
+.settlement-badge.completed {
+  background: var(--sc-success-light);
+  color: var(--sc-success);
+}
+
+.settlement-date {
+  font-size: var(--sc-font-size-sm);
+  color: var(--sc-text-tertiary);
+}
+
+.settlement-card-body {
+  padding: var(--sc-space-5);
+}
+
+.settlement-amount {
+  font-size: var(--sc-font-size-2xl);
+  font-weight: var(--sc-font-bold);
+  color: var(--sc-primary);
+  margin-bottom: var(--sc-space-3);
+}
+
+.settlement-booking-info {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
+  gap: var(--sc-space-1);
+  font-size: var(--sc-font-size-sm);
   color: var(--sc-text-secondary);
+}
+
+@media (max-width: 768px) {
+  .bookings-main {
+    padding: var(--sc-space-4);
+  }
+
+  .booking-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .booking-tab {
+    white-space: nowrap;
+    padding: var(--sc-space-2) var(--sc-space-4);
+  }
+
+  .booking-cards,
+  .settlement-cards {
+    grid-template-columns: 1fr;
+  }
 }

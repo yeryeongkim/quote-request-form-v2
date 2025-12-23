@@ -5,6 +5,15 @@ import './Admin.css';
 
 const HOST_HOME_URL = 'https://quote-request-form-five.vercel.app/host';
 
+// DB 국가명 -> 국가 코드 매핑
+const DB_TO_COUNTRY_CODE = {
+  '한국 (KOR)': 'korea',
+  '영국 (UK)': 'uk',
+  '미국 (USA)': 'usa',
+  '일본 (JPN)': 'japan',
+  '캐나다 (CAN)': 'canada',
+};
+
 // 상태 정의
 const STATUS_OPTIONS = [
   { value: 'waiting', label: '대기', color: '#6b7280' },
@@ -12,6 +21,7 @@ const STATUS_OPTIONS = [
   { value: 'rejected', label: '호스트 거절', color: '#ef4444' },
   { value: 'quote_registered', label: '견적서 등록 완료', color: '#3b82f6' },
   { value: 'quote_sent', label: '견적서 발송 완료', color: '#10b981' },
+  { value: 'booking_confirmed', label: '예약확정', color: '#8b5cf6' },
 ];
 
 const PAYMENT_OPTIONS = [
@@ -33,6 +43,9 @@ function Admin() {
   const [sendingEmail, setSendingEmail] = useState({});
   const [stripeLink, setStripeLink] = useState('');
   const [isSendingQuote, setIsSendingQuote] = useState(false);
+  const [adminMemo, setAdminMemo] = useState('');
+  const [isSavingMemo, setIsSavingMemo] = useState(false);
+  const [isConfirmingBooking, setIsConfirmingBooking] = useState(false);
 
   // 필터 상태
   const [statusFilter, setStatusFilter] = useState('all');
@@ -76,13 +89,78 @@ function Admin() {
 
       if (requestsError) throw requestsError;
 
-      // Load host_quotes for payment_method mapping
+      // Load host_quotes for payment_method and space_name mapping
       const { data: quotesData } = await supabase
         .from('host_quotes')
-        .select('quote_request_id, payment_method');
+        .select('quote_request_id, payment_method, space_name');
 
-      const mapped = requestsData.map((item) => {
+      // Load hosts from profiles table
+      const { data: hostsData } = await supabase
+        .from('profiles')
+        .select('id, email, name')
+        .order('created_at', { ascending: false });
+
+      const hostsList = hostsData || [];
+      setHosts(hostsList);
+
+      // Map requests and auto-assign hosts
+      const mapped = await Promise.all(requestsData.map(async (item) => {
         const hostQuote = quotesData?.find(q => q.quote_request_id === item.id);
+        const selectedSpaces = item.selected_spaces ? JSON.parse(item.selected_spaces) : [];
+
+        let assignedHostId = item.assigned_host_id;
+        let status = item.status || 'waiting';
+        let autoAssigned = false;
+
+        // 호스트가 아직 연결되지 않은 경우, 선택된 공간의 호스트 이메일로 자동 연결 시도
+        let spaceCountry = item.country; // 기존 country 값 유지
+        if (!assignedHostId && selectedSpaces.length > 0) {
+          for (const space of selectedSpaces) {
+            if (space.hostEmail) {
+              const matchedHost = hostsList.find(
+                h => h.email?.toLowerCase() === space.hostEmail.toLowerCase()
+              );
+              if (matchedHost) {
+                // 선택된 공간의 국가 코드 추출
+                const countryCode = DB_TO_COUNTRY_CODE[space.country] || 'korea';
+
+                // DB에 자동 연결 + 국가 코드 업데이트
+                const { error: updateError } = await supabase
+                  .from('quote_requests')
+                  .update({
+                    assigned_host_id: matchedHost.id,
+                    status: status === 'waiting' ? 'in_progress' : status,
+                    country: countryCode
+                  })
+                  .eq('id', item.id);
+
+                if (!updateError) {
+                  assignedHostId = matchedHost.id;
+                  status = status === 'waiting' ? 'in_progress' : status;
+                  spaceCountry = countryCode;
+                  autoAssigned = true;
+                  console.log(`Auto-assigned host ${matchedHost.email} to request ${item.id} (country: ${countryCode})`);
+                }
+                break; // 첫 번째 매칭된 호스트로 연결
+              }
+            }
+          }
+        }
+
+        // 선택된 공간이 있으면 항상 공간의 국가로 country 업데이트
+        if (selectedSpaces.length > 0 && selectedSpaces[0].country) {
+          const expectedCountry = DB_TO_COUNTRY_CODE[selectedSpaces[0].country] || 'korea';
+          // 현재 country와 다르면 업데이트
+          if (spaceCountry !== expectedCountry) {
+            await supabase
+              .from('quote_requests')
+              .update({ country: expectedCountry })
+              .eq('id', item.id);
+            spaceCountry = expectedCountry;
+            console.log(`Updated country to ${expectedCountry} for request ${item.id}`);
+          }
+        }
+
         return {
           id: item.id,
           email: item.email,
@@ -92,22 +170,18 @@ function Admin() {
           numberOfPeople: item.number_of_people,
           requests: item.requests,
           submittedAt: item.created_at,
-          assignedHostId: item.assigned_host_id,
-          selectedSpaces: item.selected_spaces ? JSON.parse(item.selected_spaces) : [],
-          status: item.status || 'waiting',
+          assignedHostId: assignedHostId,
+          selectedSpaces: selectedSpaces,
+          status: status,
           paymentMethod: hostQuote?.payment_method || null,
+          spaceName: hostQuote?.space_name || null,
+          adminMemo: item.admin_memo || '',
+          autoAssigned: autoAssigned,
+          country: spaceCountry,
         };
-      });
+      }));
 
       setRequests(mapped);
-
-      // Load hosts from profiles table
-      const { data: hostsData } = await supabase
-        .from('profiles')
-        .select('id, email, name')
-        .order('created_at', { ascending: false });
-
-      setHosts(hostsData || []);
 
     } catch (err) {
       console.error('Error loading data:', err);
@@ -139,6 +213,7 @@ function Admin() {
     setSelectedRequest(req);
     setHostQuote(null);
     setStripeLink('');
+    setAdminMemo(req.adminMemo || '');
     await loadHostQuote(req.id);
   };
 
@@ -164,6 +239,55 @@ function Admin() {
     } catch (err) {
       console.error('Error updating status:', err);
       alert(`상태 변경 오류: ${err.message}`);
+    }
+  };
+
+  const toggleRejected = async (requestId, isRejected) => {
+    const newStatus = isRejected ? 'rejected' : 'waiting';
+    try {
+      const { error } = await supabase
+        .from('quote_requests')
+        .update({ status: newStatus })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      setRequests(prev => prev.map(req =>
+        req.id === requestId ? { ...req, status: newStatus } : req
+      ));
+
+      if (selectedRequest?.id === requestId) {
+        setSelectedRequest(prev => ({ ...prev, status: newStatus }));
+      }
+    } catch (err) {
+      console.error('Error toggling rejected:', err);
+      alert(`상태 변경 오류: ${err.message}`);
+    }
+  };
+
+  const saveAdminMemo = async () => {
+    if (!selectedRequest) return;
+
+    setIsSavingMemo(true);
+    try {
+      const { error } = await supabase
+        .from('quote_requests')
+        .update({ admin_memo: adminMemo })
+        .eq('id', selectedRequest.id);
+
+      if (error) throw error;
+
+      setRequests(prev => prev.map(req =>
+        req.id === selectedRequest.id ? { ...req, adminMemo } : req
+      ));
+      setSelectedRequest(prev => ({ ...prev, adminMemo }));
+
+      alert('메모가 저장되었습니다.');
+    } catch (err) {
+      console.error('Error saving memo:', err);
+      alert(`메모 저장 오류: ${err.message}`);
+    } finally {
+      setIsSavingMemo(false);
     }
   };
 
@@ -315,6 +439,73 @@ function Admin() {
     }
   };
 
+  // 온라인결제 예약확정 (결제 완료 확인 후)
+  const confirmBooking = async () => {
+    if (!hostQuote || !selectedRequest) return;
+
+    if (!confirm('게스트 결제가 완료되었나요? 예약을 확정하시겠습니까?')) {
+      return;
+    }
+
+    setIsConfirmingBooking(true);
+
+    try {
+      // 1. quote_requests status를 booking_confirmed로 업데이트
+      await supabase
+        .from('quote_requests')
+        .update({ status: 'booking_confirmed' })
+        .eq('id', selectedRequest.id);
+
+      // 2. bookings 테이블에 예약 추가
+      const { data: bookingData, error: bookingError } = await supabase
+        .from('bookings')
+        .insert([{
+          host_id: selectedRequest.assignedHostId,
+          quote_request_id: selectedRequest.id,
+          host_quote_id: hostQuote.id,
+          status: 'confirmed',
+          booking_date: selectedRequest.desiredDate,
+          booking_time: selectedRequest.desiredTime,
+          guest_email: selectedRequest.email,
+          guest_count: selectedRequest.numberOfPeople,
+          total_amount: hostQuote.price,
+          currency: hostQuote.currency,
+        }])
+        .select()
+        .single();
+
+      if (bookingError) throw bookingError;
+
+      // 3. 정산 예정 레코드 생성 (예약일 기준 7일 후 정산 예정)
+      const scheduledDate = new Date(selectedRequest.desiredDate);
+      scheduledDate.setDate(scheduledDate.getDate() + 7);
+
+      await supabase
+        .from('settlements')
+        .insert([{
+          host_id: selectedRequest.assignedHostId,
+          booking_id: bookingData.id,
+          amount: hostQuote.price,
+          currency: hostQuote.currency,
+          status: 'pending',
+          scheduled_date: scheduledDate.toISOString().split('T')[0],
+        }]);
+
+      // 4. 로컬 상태 업데이트
+      setRequests(prev => prev.map(req =>
+        req.id === selectedRequest.id ? { ...req, status: 'booking_confirmed' } : req
+      ));
+      setSelectedRequest(prev => ({ ...prev, status: 'booking_confirmed' }));
+
+      alert('예약이 확정되었습니다.');
+    } catch (err) {
+      console.error('Error confirming booking:', err);
+      alert(`예약 확정 오류: ${err.message}`);
+    } finally {
+      setIsConfirmingBooking(false);
+    }
+  };
+
   const sendEmailToHost = async (space, guestInfo) => {
     if (!space.hostEmail) {
       alert('호스트 이메일이 없습니다.');
@@ -343,6 +534,22 @@ function Admin() {
 
       if (!response.ok) {
         throw new Error('이메일 발송 실패');
+      }
+
+      // 상태를 '호스트 소통 진행 중'으로 변경
+      const { error: statusError } = await supabase
+        .from('quote_requests')
+        .update({ status: 'in_progress' })
+        .eq('id', selectedRequest.id);
+
+      if (statusError) {
+        console.error('Status update error:', statusError);
+      } else {
+        // Update local state
+        setRequests(prev => prev.map(req =>
+          req.id === selectedRequest.id ? { ...req, status: 'in_progress' } : req
+        ));
+        setSelectedRequest(prev => ({ ...prev, status: 'in_progress' }));
       }
 
       alert(`${space.hostEmail}로 이메일이 발송되었습니다.`);
@@ -460,6 +667,9 @@ function Admin() {
                   <div className="request-info">
                     <span>{req.desiredDate} {req.desiredTime}</span>
                     <span>{req.numberOfPeople}명</span>
+                    {req.spaceName && (
+                      <span className="space-name-badge">{req.spaceName}</span>
+                    )}
                     <span
                       className="status-badge"
                       style={{ backgroundColor: getStatusColor(req.status), color: '#fff' }}
@@ -489,25 +699,6 @@ function Admin() {
                 {/* 상태 관리 섹션 */}
                 <div className="detail-section status-management">
                   <h3>견적 현황</h3>
-                  <div className="status-change-row">
-                    <select
-                      className="status-select"
-                      value={selectedRequest.status || 'waiting'}
-                      onChange={(e) => {
-                        setSelectedRequest(prev => ({ ...prev, status: e.target.value }));
-                      }}
-                    >
-                      {STATUS_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                    <button
-                      className="status-change-btn"
-                      onClick={() => updateRequestStatus(selectedRequest.id, selectedRequest.status)}
-                    >
-                      상태 변경
-                    </button>
-                  </div>
                   <div className="current-status">
                     현재 상태:
                     <span
@@ -517,6 +708,35 @@ function Admin() {
                       {getStatusLabel(selectedRequest.status || 'waiting')}
                     </span>
                   </div>
+                  {!selectedRequest.autoAssigned && (
+                    <label className="rejected-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedRequest.status === 'rejected'}
+                        onChange={(e) => toggleRejected(selectedRequest.id, e.target.checked)}
+                      />
+                      호스트 거절
+                    </label>
+                  )}
+                </div>
+
+                {/* 관리자 메모 섹션 */}
+                <div className="detail-section memo-section">
+                  <h3>관리자 메모</h3>
+                  <textarea
+                    className="admin-memo-textarea"
+                    placeholder="호스트와 소통한 내용을 기록하세요..."
+                    value={adminMemo}
+                    onChange={(e) => setAdminMemo(e.target.value)}
+                    rows={4}
+                  />
+                  <button
+                    className="save-memo-btn"
+                    onClick={saveAdminMemo}
+                    disabled={isSavingMemo}
+                  >
+                    {isSavingMemo ? '저장 중...' : '메모 저장'}
+                  </button>
                 </div>
 
                 <div className="detail-section">
@@ -554,31 +774,86 @@ function Admin() {
                   </div>
                 )}
 
+                {/* Selected Spaces Section */}
+                {selectedRequest.selectedSpaces?.length > 0 && (
+                  <div className="detail-section">
+                    <h3>선택된 공간 ({selectedRequest.selectedSpaces.length}개)</h3>
+                    <div className="selected-spaces-list">
+                      {selectedRequest.selectedSpaces.map((space, index) => {
+                        const emailKey = `${selectedRequest.id}-${space.id}`;
+                        const isSending = sendingEmail[emailKey];
+                        return (
+                          <div key={index} className="space-item">
+                            <div className="space-info">
+                              <span className="space-name">{space.name}</span>
+                              <span className="space-details">
+                                {space.region} · {space.capacity}명 · {space.price}
+                              </span>
+                              <span className="host-email">
+                                호스트: {space.hostEmail || '이메일 없음'}
+                              </span>
+                            </div>
+                            <button
+                              className="email-btn"
+                              onClick={() => sendEmailToHost(space, selectedRequest)}
+                              disabled={!space.hostEmail || isSending}
+                            >
+                              {isSending ? '발송 중...' : '호스트에게 알림'}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Host Assignment Section */}
                 <div className="detail-section">
-                  <h3>호스트 연결</h3>
-                  <div className="host-assignment">
-                    <select
-                      className="host-select"
-                      value={selectedRequest.assignedHostId || ''}
-                      onChange={(e) => {
-                        setSelectedRequest(prev => ({ ...prev, assignedHostId: e.target.value }));
-                      }}
-                    >
-                      <option value="">호스트 선택</option>
-                      {hosts.map((host) => (
-                        <option key={host.id} value={host.id}>
-                          {host.email}{host.name ? ` (${host.name})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      className="assign-btn"
-                      onClick={() => assignHost(selectedRequest.id, selectedRequest.assignedHostId)}
-                    >
-                      연결
-                    </button>
-                  </div>
+                  <h3>
+                    호스트 연결
+                    {selectedRequest.autoAssigned && (
+                      <span className="auto-badge">자동 연결됨</span>
+                    )}
+                  </h3>
+                  {selectedRequest.assignedHostId ? (
+                    <div className="host-assigned-info">
+                      <span className="assigned-host">
+                        {hosts.find(h => h.id === selectedRequest.assignedHostId)?.email || '연결된 호스트'}
+                        {hosts.find(h => h.id === selectedRequest.assignedHostId)?.name &&
+                          ` (${hosts.find(h => h.id === selectedRequest.assignedHostId).name})`
+                        }
+                      </span>
+                      <button
+                        className="unassign-btn"
+                        onClick={() => assignHost(selectedRequest.id, null)}
+                      >
+                        연결 해제
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="host-assignment">
+                      <select
+                        className="host-select"
+                        value={selectedRequest.assignedHostId || ''}
+                        onChange={(e) => {
+                          setSelectedRequest(prev => ({ ...prev, assignedHostId: e.target.value }));
+                        }}
+                      >
+                        <option value="">호스트 선택</option>
+                        {hosts.map((host) => (
+                          <option key={host.id} value={host.id}>
+                            {host.email}{host.name ? ` (${host.name})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        className="assign-btn"
+                        onClick={() => assignHost(selectedRequest.id, selectedRequest.assignedHostId)}
+                      >
+                        연결
+                      </button>
+                    </div>
+                  )}
                   {hosts.length === 0 && (
                     <p className="hint-text">등록된 호스트가 없습니다. 호스트가 먼저 가입해야 합니다.</p>
                   )}
@@ -602,6 +877,12 @@ function Admin() {
                     )}
 
                     <div className="quote-info">
+                      {hostQuote.space_name && (
+                        <div className="detail-row">
+                          <label>공간명</label>
+                          <span className="space-name">{hostQuote.space_name}</span>
+                        </div>
+                      )}
                       <div className="detail-row">
                         <label>견적 금액</label>
                         <span className="price">{formatPrice(hostQuote.price, hostQuote.currency)}</span>
@@ -621,7 +902,28 @@ function Admin() {
                     {/* 현장결제: 호스트가 이미 발송했으므로 상태만 표시 */}
                     {hostQuote.payment_method === 'onsite' && hostQuote.status === 'sent' && (
                       <div className="onsite-sent-notice">
-                        호스트가 게스트에게 견적서를 발송했습니다.
+                        호스트가 게스트에게 견적서를 발송했습니다. (현장결제 - 예약확정)
+                      </div>
+                    )}
+
+                    {/* 온라인결제: 발송 완료 후 결제 확인되면 예약확정 */}
+                    {hostQuote.payment_method === 'online' && hostQuote.status === 'sent' && selectedRequest.status !== 'booking_confirmed' && (
+                      <div className="booking-confirm-section">
+                        <p className="confirm-hint">게스트 결제 완료 확인 후 예약을 확정하세요.</p>
+                        <button
+                          className="confirm-booking-btn"
+                          onClick={confirmBooking}
+                          disabled={isConfirmingBooking}
+                        >
+                          {isConfirmingBooking ? '처리 중...' : '예약확정'}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* 예약확정 완료 */}
+                    {selectedRequest.status === 'booking_confirmed' && (
+                      <div className="booking-confirmed-notice">
+                        예약이 확정되었습니다.
                       </div>
                     )}
 
@@ -653,38 +955,6 @@ function Admin() {
                         </button>
                       </>
                     )}
-                  </div>
-                )}
-
-                {selectedRequest.selectedSpaces?.length > 0 && (
-                  <div className="detail-section">
-                    <h3>선택된 공간 ({selectedRequest.selectedSpaces.length}개)</h3>
-                    <div className="selected-spaces-list">
-                      {selectedRequest.selectedSpaces.map((space, index) => {
-                        const emailKey = `${selectedRequest.id}-${space.id}`;
-                        const isSending = sendingEmail[emailKey];
-                        return (
-                          <div key={index} className="space-item">
-                            <div className="space-info">
-                              <span className="space-name">{space.name}</span>
-                              <span className="space-details">
-                                {space.region} · {space.capacity}명 · {space.price}
-                              </span>
-                              <span className="host-email">
-                                호스트: {space.hostEmail || '이메일 없음'}
-                              </span>
-                            </div>
-                            <button
-                              className="email-btn"
-                              onClick={() => sendEmailToHost(space, selectedRequest)}
-                              disabled={!space.hostEmail || isSending}
-                            >
-                              {isSending ? '발송 중...' : '호스트에게 알림'}
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
                   </div>
                 )}
 

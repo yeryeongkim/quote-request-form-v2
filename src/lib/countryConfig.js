@@ -179,6 +179,27 @@ export const TRANSLATIONS = {
     payFeeButton: '수수료 결제하기',
     feeRequiredHint: '수수료를 결제해야 견적서를 발송할 수 있습니다.',
 
+    // Migration Banner & Modal
+    migrationBannerTitle: '예약/결제 서비스도 이용해보세요!',
+    migrationBannerDesc: '등록한 공간을 예약/결제 서비스에도 노출할 수 있습니다. 지금 신청하세요!',
+    migrationModalTitle: '예약/결제 서비스 이관 신청',
+    migrationModalDesc: '공간 정보를 이관하면 온라인 예약 및 결제를 받을 수 있습니다.',
+    hostName: '호스트 이름',
+    hostEmail: '이메일',
+    hostPhone: '연락처',
+    selectSpaces: '이관할 공간 선택',
+    consentText: '공간 정보를 예약/결제 서비스로 이관하는 것에 동의합니다.',
+    submitMigrationRequest: '신청하기',
+    migrationRequestSuccess: '신청이 완료되었습니다. 관리자 확인 후 연락드리겠습니다.',
+    migrationRequestError: '신청 중 오류가 발생했습니다.',
+    noSpacesAvailable: '이관 가능한 공간이 없습니다.',
+    alreadyRequested: '이미 신청이 접수되었습니다.',
+    unnamedSpace: '이름 없는 공간',
+
+    // Space Name
+    spaceName: '공간명',
+    spaceNamePlaceholder: '예: 강남 스튜디오 A',
+
     // Common
     required: '*',
     retry: '다시 시도',
@@ -293,6 +314,27 @@ export const TRANSLATIONS = {
     payFeeButton: 'Pay Service Fee',
     feeRequiredHint: 'You must pay the service fee to send the quote.',
 
+    // Migration Banner & Modal
+    migrationBannerTitle: 'Try our Booking & Payment Service!',
+    migrationBannerDesc: 'Expose your registered spaces to booking & payment service. Apply now!',
+    migrationModalTitle: 'Booking & Payment Service Migration',
+    migrationModalDesc: 'Migrate your space data to accept online bookings and payments.',
+    hostName: 'Host Name',
+    hostEmail: 'Email',
+    hostPhone: 'Phone',
+    selectSpaces: 'Select Spaces to Migrate',
+    consentText: 'I agree to migrate my space data to the booking & payment service.',
+    submitMigrationRequest: 'Submit Request',
+    migrationRequestSuccess: 'Your request has been submitted. We will contact you after review.',
+    migrationRequestError: 'Error submitting request.',
+    noSpacesAvailable: 'No spaces available for migration.',
+    alreadyRequested: 'You already have a pending request.',
+    unnamedSpace: 'Unnamed Space',
+
+    // Space Name
+    spaceName: 'Space Name',
+    spaceNamePlaceholder: 'e.g., Gangnam Studio A',
+
     // Common
     required: '*',
     retry: 'Retry',
@@ -406,6 +448,27 @@ export const TRANSLATIONS = {
     feeRequiredMessage: '現地払いの見積書をゲストに送信するには、まずサービス手数料をお支払いください。',
     payFeeButton: '手数料を支払う',
     feeRequiredHint: '手数料を支払わないと見積書を送信できません。',
+
+    // Migration Banner & Modal
+    migrationBannerTitle: '予約・決済サービスもご利用ください！',
+    migrationBannerDesc: '登録したスペースを予約・決済サービスにも公開できます。今すぐ申請！',
+    migrationModalTitle: '予約・決済サービス移行申請',
+    migrationModalDesc: 'スペース情報を移行すると、オンライン予約・決済を受け付けることができます。',
+    hostName: 'ホスト名',
+    hostEmail: 'メール',
+    hostPhone: '電話番号',
+    selectSpaces: '移行するスペースを選択',
+    consentText: 'スペース情報を予約・決済サービスに移行することに同意します。',
+    submitMigrationRequest: '申請する',
+    migrationRequestSuccess: '申請が完了しました。確認後、ご連絡いたします。',
+    migrationRequestError: '申請中にエラーが発生しました。',
+    noSpacesAvailable: '移行可能なスペースがありません。',
+    alreadyRequested: '既に申請が受け付けられています。',
+    unnamedSpace: '名前のないスペース',
+
+    // Space Name
+    spaceName: 'スペース名',
+    spaceNamePlaceholder: '例：江南スタジオA',
 
     // Common
     required: '*',

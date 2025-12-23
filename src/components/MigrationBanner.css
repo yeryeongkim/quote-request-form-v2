@@ -1,0 +1,81 @@
+.migration-banner {
+  background: linear-gradient(135deg, var(--sc-primary) 0%, var(--sc-primary-hover) 100%);
+  padding: var(--sc-space-4) var(--sc-space-8);
+  cursor: pointer;
+  transition: all var(--sc-transition-normal);
+}
+
+.migration-banner:hover {
+  box-shadow: var(--sc-shadow-md);
+  filter: brightness(1.05);
+}
+
+.migration-banner-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-4);
+}
+
+.migration-banner-icon {
+  flex-shrink: 0;
+  color: var(--sc-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.migration-banner-text {
+  flex: 1;
+}
+
+.migration-banner-text h3 {
+  font-size: var(--sc-font-size-lg);
+  font-weight: var(--sc-font-semibold);
+  color: var(--sc-text-inverse);
+  margin: 0 0 var(--sc-space-1) 0;
+}
+
+.migration-banner-text p {
+  font-size: var(--sc-font-size-sm);
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.migration-banner-arrow {
+  flex-shrink: 0;
+  color: var(--sc-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--sc-transition-normal);
+}
+
+.migration-banner:hover .migration-banner-arrow {
+  transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+  .migration-banner {
+    padding: var(--sc-space-3) var(--sc-space-4);
+  }
+
+  .migration-banner-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .migration-banner-text h3 {
+    font-size: var(--sc-font-size-base);
+  }
+
+  .migration-banner-text p {
+    font-size: var(--sc-font-size-xs);
+  }
+
+  .migration-banner-arrow svg {
+    width: 20px;
+    height: 20px;
+  }
+}

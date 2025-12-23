@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { isValidCountry, DEFAULT_COUNTRY, getCountryConfig, t, formatDate as formatDateUtil } from '../lib/countryConfig';
 import './HostQuoteForm.css';
 
 function HostQuoteForm() {
   const navigate = useNavigate();
-  const { requestId } = useParams();
+  const { requestId, country } = useParams();
   const [user, setUser] = useState(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [quoteRequest, setQuoteRequest] = useState(null);
@@ -16,14 +17,30 @@ function HostQuoteForm() {
   const [hasTemplate, setHasTemplate] = useState(false);
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
 
+  const countryConfig = getCountryConfig(country);
+
+  // 호스트 수수료 결제 링크
+  const HOST_FEE_PAYMENT_LINK = 'https://buy.stripe.com/test_14AeVd9n5csEbPA6Q0dUY04';
+
+  // 수수료 결제 상태
+  const [feePaid, setFeePaid] = useState(false);
+
+  // 화폐는 국가별로 고정
   const [formData, setFormData] = useState({
+    spaceName: '',
     spacePhoto: null,
     spacePhotoPreview: '',
     price: '',
-    currency: 'KRW',
     priceIncludes: '',
     paymentMethod: 'onsite',
   });
+
+  // 유효하지 않은 국가 코드인 경우 기본 국가로 리다이렉트
+  useEffect(() => {
+    if (!isValidCountry(country)) {
+      navigate(`/host/${DEFAULT_COUNTRY}/quote/${requestId}`, { replace: true });
+    }
+  }, [country, navigate, requestId]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -32,7 +49,7 @@ function HostQuoteForm() {
         setUser(session.user);
         loadData(session.user.id);
       } else {
-        navigate('/host');
+        navigate(`/host/${country || DEFAULT_COUNTRY}`);
       }
       setIsAuthChecking(false);
     };
@@ -41,12 +58,53 @@ function HostQuoteForm() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
-        navigate('/host');
+        navigate(`/host/${country || DEFAULT_COUNTRY}`);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, requestId]);
+  }, [navigate, requestId, country]);
+
+  // 창이 다시 활성화될 때 수수료 결제 상태 자동 확인
+  useEffect(() => {
+    if (!user || feePaid || formData.paymentMethod !== 'onsite') return;
+
+    const checkFeeOnFocus = async () => {
+      try {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('fee_paid')
+          .eq('id', user.id)
+          .single();
+
+        if (profileData?.fee_paid) {
+          setFeePaid(true);
+        }
+      } catch (err) {
+        console.error('Error checking fee status:', err);
+      }
+    };
+
+    // 브라우저 탭이 다시 활성화될 때
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkFeeOnFocus();
+      }
+    };
+
+    // 창이 포커스될 때
+    const handleFocus = () => {
+      checkFeeOnFocus();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [user, feePaid, formData.paymentMethod]);
 
   const loadData = async (userId) => {
     setIsLoading(true);
@@ -63,7 +121,7 @@ function HostQuoteForm() {
 
       if (requestError) {
         if (requestError.code === 'PGRST116') {
-          setError('접근 권한이 없거나 존재하지 않는 요청입니다.');
+          setError(t(country, 'accessDenied'));
         } else {
           throw requestError;
         }
@@ -83,10 +141,10 @@ function HostQuoteForm() {
       if (quoteData) {
         setExistingQuote(quoteData);
         setFormData({
+          spaceName: quoteData.space_name || '',
           spacePhoto: null,
           spacePhotoPreview: quoteData.space_photo_url || '',
           price: quoteData.price ? quoteData.price.toLocaleString() : '',
-          currency: quoteData.currency || 'KRW',
           priceIncludes: quoteData.price_includes || '',
           paymentMethod: quoteData.payment_method || 'onsite',
         });
@@ -100,9 +158,18 @@ function HostQuoteForm() {
         .single();
 
       setHasTemplate(!!templateExists);
+
+      // Check if host has paid the fee
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('fee_paid')
+        .eq('id', userId)
+        .single();
+
+      setFeePaid(profileData?.fee_paid || false);
     } catch (err) {
       console.error('Error loading data:', err);
-      setError('데이터를 불러오는데 실패했습니다.');
+      setError(t(country, 'loadDataError'));
     } finally {
       setIsLoading(false);
     }
@@ -123,7 +190,7 @@ function HostQuoteForm() {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setError('파일 크기는 5MB 이하여야 합니다.');
+        setError(t(country, 'fileSizeError'));
         return;
       }
 
@@ -174,14 +241,13 @@ function HostQuoteForm() {
           ...prev,
           spacePhotoPreview: template.space_photo_url || prev.spacePhotoPreview,
           price: template.default_price ? template.default_price.toLocaleString() : prev.price,
-          currency: template.currency || prev.currency,
           priceIncludes: template.price_includes || prev.priceIncludes,
           paymentMethod: template.payment_method || prev.paymentMethod,
         }));
       }
     } catch (err) {
       console.error('Error loading template:', err);
-      setError('템플릿을 불러오는데 실패했습니다.');
+      setError(t(country, 'loadTemplateError'));
     } finally {
       setIsLoadingTemplate(false);
     }
@@ -192,8 +258,8 @@ function HostQuoteForm() {
     setIsSubmitting(true);
     setError('');
 
-    if (!formData.price) {
-      setError('견적 금액을 입력해주세요.');
+    if (!formData.spaceName || !formData.price) {
+      setError(t(country, 'enterQuoteAmount'));
       setIsSubmitting(false);
       return;
     }
@@ -211,9 +277,10 @@ function HostQuoteForm() {
       const quoteData = {
         quote_request_id: requestId,
         host_id: user.id,
+        space_name: formData.spaceName,
         space_photo_url: photoUrl,
         price: parseInt(formData.price.replace(/,/g, '')),
-        currency: formData.currency,
+        currency: countryConfig.currency, // 국가별 고정 화폐
         price_includes: formData.priceIncludes,
         payment_method: formData.paymentMethod,
         status: isOnsite ? 'sent' : 'pending',
@@ -243,8 +310,6 @@ function HostQuoteForm() {
       }
 
       // Update quote_requests status
-      // 온라인결제: quote_registered (관리자가 나중에 발송)
-      // 현장결제: quote_sent (아래에서 이메일 발송 후 업데이트)
       if (!isOnsite) {
         await supabase
           .from('quote_requests')
@@ -254,7 +319,7 @@ function HostQuoteForm() {
 
       // 현장결제인 경우 바로 이메일 발송
       if (isOnsite) {
-        const spaceName = quoteRequest?.selectedSpaces?.[0]?.name || '공간';
+        const spaceName = quoteRequest?.selectedSpaces?.[0]?.name || 'Space';
 
         const response = await fetch('/api/send-quote', {
           method: 'POST',
@@ -264,7 +329,7 @@ function HostQuoteForm() {
             spaceName: spaceName,
             spacePhotoUrl: photoUrl,
             price: parseInt(formData.price.replace(/,/g, '')).toLocaleString(),
-            currency: formData.currency,
+            currency: countryConfig.currency,
             priceIncludes: formData.priceIncludes,
             paymentMethod: formData.paymentMethod,
             stripeLink: null,
@@ -274,45 +339,69 @@ function HostQuoteForm() {
         });
 
         if (!response.ok) {
-          // 이메일 발송 실패 시 상태를 pending으로 되돌림
           await supabase
             .from('host_quotes')
             .update({ status: 'pending' })
             .eq('id', savedQuoteId);
-          throw new Error('이메일 발송에 실패했습니다.');
+          throw new Error(t(country, 'saveError'));
         }
 
-        // 현장결제 이메일 발송 성공 시 quote_requests status를 quote_sent로 업데이트
         await supabase
           .from('quote_requests')
-          .update({ status: 'quote_sent' })
+          .update({ status: 'booking_confirmed' })
           .eq('id', requestId);
+
+        const priceValue = parseInt(formData.price.replace(/,/g, ''));
+        const { data: bookingData, error: bookingError } = await supabase
+          .from('bookings')
+          .insert([{
+            host_id: user.id,
+            quote_request_id: requestId,
+            host_quote_id: savedQuoteId,
+            status: 'confirmed',
+            booking_date: quoteRequest.desired_date,
+            booking_time: quoteRequest.desired_time,
+            guest_email: quoteRequest.email,
+            guest_count: quoteRequest.number_of_people,
+            total_amount: priceValue,
+            currency: countryConfig.currency,
+          }])
+          .select()
+          .single();
+
+        if (bookingError) {
+          console.error('Booking creation error:', bookingError);
+        } else {
+          const scheduledDate = new Date(quoteRequest.desired_date);
+          scheduledDate.setDate(scheduledDate.getDate() + 7);
+
+          await supabase
+            .from('settlements')
+            .insert([{
+              host_id: user.id,
+              booking_id: bookingData.id,
+              amount: priceValue,
+              currency: countryConfig.currency,
+              status: 'pending',
+              scheduled_date: scheduledDate.toISOString().split('T')[0],
+            }]);
+        }
       }
 
-      navigate('/host/quotes');
+      navigate(`/host/${country}/quotes`);
     } catch (err) {
       console.error('Error saving quote:', err);
-      setError(err.message || '견적 저장 중 오류가 발생했습니다.');
+      setError(err.message || t(country, 'saveError'));
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
   };
 
   if (isAuthChecking || isLoading) {
     return (
       <div className="host-quote-container">
         <div className="loading-state">
-          <p>{isAuthChecking ? '인증 확인 중...' : '데이터 로딩 중...'}</p>
+          <p>{isAuthChecking ? t(country, 'authChecking') : t(country, 'loading')}</p>
         </div>
       </div>
     );
@@ -323,7 +412,7 @@ function HostQuoteForm() {
       <div className="host-quote-container">
         <div className="error-state">
           <p>{error}</p>
-          <Link to="/host/quotes" className="back-link-btn">견적 요청 목록으로</Link>
+          <Link to={`/host/${country}/quotes`} className="back-link-btn">{t(country, 'backToListBtn')}</Link>
         </div>
       </div>
     );
@@ -334,10 +423,10 @@ function HostQuoteForm() {
   return (
     <div className="host-quote-container">
       <header className="quote-form-header">
-        <Link to="/host/quotes" className="back-link">← 견적 요청 관리</Link>
-        <h1>{isSent ? '발송 완료된 견적서' : existingQuote ? '견적서 등록' : '견적서 등록'}</h1>
+        <Link to={`/host/${country}/quotes`} className="back-link">{t(country, 'backToList')}</Link>
+        <h1>{isSent ? t(country, 'sentQuoteTitle') : t(country, 'quoteFormTitle')}</h1>
         <p className="form-description">
-          {isSent ? '이미 게스트에게 발송된 견적서입니다.' : '게스트 요청에 대한 견적을 작성하세요.'}
+          {isSent ? t(country, 'sentQuoteDesc') : t(country, 'quoteFormDesc')}
         </p>
 
         {hasTemplate && !existingQuote && (
@@ -347,7 +436,7 @@ function HostQuoteForm() {
             onClick={handleLoadTemplate}
             disabled={isLoadingTemplate}
           >
-            {isLoadingTemplate ? '불러오는 중...' : '템플릿 불러오기'}
+            {isLoadingTemplate ? t(country, 'loadingTemplate') : t(country, 'loadTemplate')}
           </button>
         )}
       </header>
@@ -357,28 +446,28 @@ function HostQuoteForm() {
       {/* Guest Request Info */}
       {quoteRequest && (
         <div className="guest-request-box">
-          <h3>게스트 요청 정보</h3>
+          <h3>{t(country, 'guestRequestInfo')}</h3>
           <div className="request-info-grid">
             <div className="request-info-item">
-              <span className="label">희망 날짜</span>
+              <span className="label">{t(country, 'desiredDate')}</span>
               <span className="value">{quoteRequest.desired_date || '-'}</span>
             </div>
             <div className="request-info-item">
-              <span className="label">희망 시간</span>
+              <span className="label">{t(country, 'desiredTime')}</span>
               <span className="value">{quoteRequest.desired_time || '-'}</span>
             </div>
             <div className="request-info-item">
-              <span className="label">인원</span>
-              <span className="value">{quoteRequest.number_of_people}명</span>
+              <span className="label">{t(country, 'numberOfPeople')}</span>
+              <span className="value">{quoteRequest.number_of_people}{t(country, 'peopleUnit')}</span>
             </div>
             <div className="request-info-item">
-              <span className="label">요청일</span>
-              <span className="value">{formatDate(quoteRequest.created_at)}</span>
+              <span className="label">{t(country, 'requestDate')}</span>
+              <span className="value">{formatDateUtil(quoteRequest.created_at, country)}</span>
             </div>
           </div>
           {quoteRequest.requests && (
             <div className="request-message">
-              <span className="label">요청사항</span>
+              <span className="label">{t(country, 'specialRequests')}</span>
               <p>{quoteRequest.requests}</p>
             </div>
           )}
@@ -387,11 +476,11 @@ function HostQuoteForm() {
 
       <form onSubmit={handleSubmit} className="quote-form">
         <div className="form-section">
-          <h3>공간 사진</h3>
+          <h3>{t(country, 'spacePhoto')}</h3>
           <div className="photo-upload-area">
             {formData.spacePhotoPreview ? (
               <div className="photo-preview">
-                <img src={formData.spacePhotoPreview} alt="공간 미리보기" />
+                <img src={formData.spacePhotoPreview} alt="Space preview" />
                 <button
                   type="button"
                   className="remove-photo-btn"
@@ -401,7 +490,7 @@ function HostQuoteForm() {
                     spacePhotoPreview: '',
                   }))}
                 >
-                  삭제
+                  {t(country, 'delete')}
                 </button>
               </div>
             ) : (
@@ -414,8 +503,8 @@ function HostQuoteForm() {
                 />
                 <div className="upload-placeholder">
                   <span className="upload-icon">+</span>
-                  <span>사진 업로드</span>
-                  <span className="upload-hint">최대 5MB</span>
+                  <span>{t(country, 'uploadPhoto')}</span>
+                  <span className="upload-hint">{t(country, 'maxFileSize')}</span>
                 </div>
               </label>
             )}
@@ -423,52 +512,52 @@ function HostQuoteForm() {
         </div>
 
         <div className="form-section">
-          <h3>견적 정보</h3>
+          <h3>{t(country, 'quoteInfo')}</h3>
+          <div className="form-group">
+            <label htmlFor="spaceName">{t(country, 'spaceName')} <span className="required">{t(country, 'required')}</span></label>
+            <input
+              type="text"
+              id="spaceName"
+              name="spaceName"
+              value={formData.spaceName}
+              onChange={handleChange}
+              placeholder={t(country, 'spaceNamePlaceholder')}
+              required
+            />
+          </div>
           <div className="form-row">
             <div className="form-group flex-grow">
-              <label htmlFor="price">견적 금액 <span className="required">*</span></label>
-              <input
-                type="text"
-                id="price"
-                name="price"
-                value={formData.price}
-                onChange={handlePriceChange}
-                placeholder="예: 100,000"
-                required
-              />
-            </div>
-            <div className="form-group currency-group">
-              <label htmlFor="currency">통화</label>
-              <select
-                id="currency"
-                name="currency"
-                value={formData.currency}
-                onChange={handleChange}
-              >
-                <option value="KRW">KRW (원)</option>
-                <option value="USD">USD ($)</option>
-                <option value="GBP">GBP (£)</option>
-                <option value="JPY">JPY (¥)</option>
-                <option value="EUR">EUR (€)</option>
-              </select>
+              <label htmlFor="price">{t(country, 'quoteAmount')} <span className="required">{t(country, 'required')}</span></label>
+              <div className="price-input-wrapper">
+                <input
+                  type="text"
+                  id="price"
+                  name="price"
+                  value={formData.price}
+                  onChange={handlePriceChange}
+                  placeholder="100,000"
+                  required
+                />
+                <span className="currency-fixed">{countryConfig.currency} ({countryConfig.currencySymbol})</span>
+              </div>
             </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="priceIncludes">가격 포함 항목</label>
+            <label htmlFor="priceIncludes">{t(country, 'priceIncludes')}</label>
             <textarea
               id="priceIncludes"
               name="priceIncludes"
               value={formData.priceIncludes}
               onChange={handleChange}
               rows="3"
-              placeholder="예: 장소 대여, 음향 장비, 주차 2대 무료"
+              placeholder={t(country, 'priceIncludesPlaceholder')}
             />
           </div>
         </div>
 
         <div className="form-section">
-          <h3>결제 방식</h3>
+          <h3>{t(country, 'paymentMethod')}</h3>
           <div className="payment-options">
             <label className={`payment-option ${formData.paymentMethod === 'onsite' ? 'selected' : ''}`}>
               <input
@@ -480,8 +569,8 @@ function HostQuoteForm() {
               />
               <div className="option-content">
                 <span className="option-icon">💵</span>
-                <span className="option-label">현장결제</span>
-                <span className="option-desc">이용 당일 현장에서 결제</span>
+                <span className="option-label">{t(country, 'onsitePayment')}</span>
+                <span className="option-desc">{t(country, 'onsitePaymentDesc')}</span>
               </div>
             </label>
             <label className={`payment-option ${formData.paymentMethod === 'online' ? 'selected' : ''}`}>
@@ -494,23 +583,57 @@ function HostQuoteForm() {
               />
               <div className="option-content">
                 <span className="option-icon">💳</span>
-                <span className="option-label">온라인결제</span>
-                <span className="option-desc">관리자가 결제 링크를 생성합니다</span>
+                <span className="option-label">{t(country, 'onlinePayment')}</span>
+                <span className="option-desc">{t(country, 'onlinePaymentDesc')}</span>
               </div>
             </label>
           </div>
         </div>
 
+        {/* 현장결제 선택 시 수수료 결제 안내 */}
+        {formData.paymentMethod === 'onsite' && !isSent && (
+          <div className="form-section fee-section">
+            <h3>{t(country, 'serviceFee')}</h3>
+            {feePaid ? (
+              <div className="fee-paid-notice">
+                <span className="fee-paid-icon">✅</span>
+                <p>{t(country, 'feePaidMessage')}</p>
+              </div>
+            ) : (
+              <div className="fee-required-notice">
+                <p className="fee-notice-text">
+                  {t(country, 'feeRequiredMessage')}
+                </p>
+                <a
+                  href={HOST_FEE_PAYMENT_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pay-fee-btn"
+                >
+                  {t(country, 'payFeeButton')}
+                </a>
+              </div>
+            )}
+          </div>
+        )}
+
         {!isSent && (
           <div className="form-actions">
-            <button type="submit" className="submit-btn" disabled={isSubmitting}>
+            <button
+              type="submit"
+              className="submit-btn"
+              disabled={isSubmitting || (formData.paymentMethod === 'onsite' && !feePaid)}
+            >
               {isSubmitting
-                ? (formData.paymentMethod === 'onsite' ? '발송 중...' : '저장 중...')
-                : (formData.paymentMethod === 'onsite' ? '견적서 등록 및 발송' : '견적서 등록')
+                ? (formData.paymentMethod === 'onsite' ? t(country, 'submitting') : t(country, 'saving'))
+                : (formData.paymentMethod === 'onsite' ? t(country, 'submitAndSend') : t(country, 'submitOnly'))
               }
             </button>
             {formData.paymentMethod === 'online' && !existingQuote && (
-              <p className="submit-hint">온라인결제 선택 시 관리자가 결제링크 추가 후 게스트에게 발송합니다.</p>
+              <p className="submit-hint">{t(country, 'onlinePaymentHint')}</p>
+            )}
+            {formData.paymentMethod === 'onsite' && !feePaid && (
+              <p className="submit-hint fee-warning">{t(country, 'feeRequiredHint')}</p>
             )}
           </div>
         )}
@@ -518,7 +641,7 @@ function HostQuoteForm() {
         {isSent && (
           <div className="sent-notice">
             <span className="sent-icon">✅</span>
-            <p>이 견적서는 이미 게스트에게 발송되었습니다.</p>
+            <p>{t(country, 'alreadySent')}</p>
           </div>
         )}
       </form>

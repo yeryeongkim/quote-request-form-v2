@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { isValidCountry, DEFAULT_COUNTRY, getCountryConfig, t } from '../lib/countryConfig';
 import HostHeader from './HostHeader';
 import HostAuthModal from './HostAuthModal';
 import TemplateSettingsModal from './TemplateSettingsModal';
@@ -8,11 +9,21 @@ import './HostHome.css';
 
 function HostHome() {
   const navigate = useNavigate();
+  const { country } = useParams();
   const [user, setUser] = useState(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [template, setTemplate] = useState(null);
+
+  // 유효하지 않은 국가 코드인 경우 기본 국가로 리다이렉트
+  useEffect(() => {
+    if (!isValidCountry(country)) {
+      navigate(`/host/${DEFAULT_COUNTRY}`, { replace: true });
+    }
+  }, [country, navigate]);
+
+  const countryConfig = getCountryConfig(country);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -58,36 +69,37 @@ function HostHome() {
 
   return (
     <div className="host-home-container">
-      <HostHeader user={user} onLoginClick={() => setShowAuthModal(true)} />
+      <HostHeader user={user} onLoginClick={() => setShowAuthModal(true)} country={country} />
 
       <main className="host-main">
         <div className="host-hero">
-          <h2 className="host-title">게스트에게 견적서를 보내세요</h2>
+          <h2 className="host-title">{t(country, 'heroTitle')}</h2>
           <p className="host-description">
-            SpaceCloud에서 공간을 검색한 게스트가 견적 요청을 보내면,<br />
-            호스트님께서 직접 견적서를 작성하여 회신할 수 있습니다.
+            {t(country, 'heroDescription').split('\n').map((line, i) => (
+              <span key={i}>{line}{i === 0 && <br />}</span>
+            ))}
           </p>
 
           <div className="host-features">
             <div className="feature-item">
               <span className="feature-icon">📩</span>
               <div className="feature-text">
-                <h3>견적 요청 확인</h3>
-                <p>이메일로 게스트의 견적 요청을 받아보세요</p>
+                <h3>{t(country, 'featureRequestTitle')}</h3>
+                <p>{t(country, 'featureRequestDesc')}</p>
               </div>
             </div>
             <div className="feature-item">
               <span className="feature-icon">📝</span>
               <div className="feature-text">
-                <h3>견적서 작성</h3>
-                <p>공간 이용료, 옵션 등 상세 견적을 작성하세요</p>
+                <h3>{t(country, 'featureWriteTitle')}</h3>
+                <p>{t(country, 'featureWriteDesc')}</p>
               </div>
             </div>
             <div className="feature-item">
               <span className="feature-icon">📤</span>
               <div className="feature-text">
-                <h3>견적서 발송</h3>
-                <p>작성한 견적서를 게스트에게 바로 전달하세요</p>
+                <h3>{t(country, 'featureSendTitle')}</h3>
+                <p>{t(country, 'featureSendDesc')}</p>
               </div>
             </div>
           </div>
@@ -97,12 +109,12 @@ function HostHome() {
             onClick={handleQuoteButtonClick}
             disabled={isAuthChecking}
           >
-            견적서 등록하기
+            {t(country, 'registerQuote')}
           </button>
 
           {!user && (
             <p className="host-login-hint">
-              로그인 후 견적서를 등록할 수 있습니다
+              {t(country, 'loginHint')}
             </p>
           )}
         </div>
@@ -120,8 +132,9 @@ function HostHome() {
           onSave={(newTemplate) => {
             setTemplate(newTemplate);
             setShowTemplateModal(false);
-            navigate('/host/quotes');
+            navigate(`/host/${country}/quotes`);
           }}
+          country={country}
         />
       )}
     </div>

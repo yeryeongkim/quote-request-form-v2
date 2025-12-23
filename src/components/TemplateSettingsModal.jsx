@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { getCountryConfig, DEFAULT_COUNTRY, t } from '../lib/countryConfig';
 import './TemplateSettingsModal.css';
 
-function TemplateSettingsModal({ template, userId, onClose, onSave }) {
+function TemplateSettingsModal({ template, userId, onClose, onSave, country = DEFAULT_COUNTRY }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  const countryConfig = getCountryConfig(country);
+
+  // 화폐는 국가별로 고정
   const [formData, setFormData] = useState({
     spacePhoto: null,
     spacePhotoPreview: template?.space_photo_url || '',
     defaultPrice: template?.default_price ? template.default_price.toLocaleString() : '',
-    currency: template?.currency || 'KRW',
     priceIncludes: template?.price_includes || '',
     paymentMethod: template?.payment_method || 'onsite',
   });
@@ -33,7 +36,7 @@ function TemplateSettingsModal({ template, userId, onClose, onSave }) {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setError('파일 크기는 5MB 이하여야 합니다.');
+        setError(t(country, 'fileSizeError'));
         return;
       }
 
@@ -84,7 +87,7 @@ function TemplateSettingsModal({ template, userId, onClose, onSave }) {
         default_price: formData.defaultPrice
           ? parseInt(formData.defaultPrice.replace(/,/g, ''))
           : null,
-        currency: formData.currency,
+        currency: countryConfig.currency, // 국가별 고정 화폐
         price_includes: formData.priceIncludes || null,
         payment_method: formData.paymentMethod,
         updated_at: new Date().toISOString(),
@@ -98,11 +101,11 @@ function TemplateSettingsModal({ template, userId, onClose, onSave }) {
 
       if (error) throw error;
 
-      setSuccessMessage('템플릿이 저장되었습니다.');
+      setSuccessMessage(t(country, 'templateSaved'));
       setTimeout(() => onSave(data), 1000);
     } catch (err) {
       console.error('Template save error:', err);
-      setError(err.message || '저장 중 오류가 발생했습니다.');
+      setError(err.message || t(country, 'templateSaveError'));
     } finally {
       setIsLoading(false);
     }
@@ -121,9 +124,9 @@ function TemplateSettingsModal({ template, userId, onClose, onSave }) {
           &times;
         </button>
 
-        <h2>기본 견적서 설정</h2>
+        <h2>{t(country, 'templateTitle')}</h2>
         <p className="template-description">
-          자주 사용하는 견적 정보를 미리 저장하세요.
+          {t(country, 'templateDesc')}
         </p>
 
         {error && <div className="template-error">{error}</div>}
@@ -132,11 +135,11 @@ function TemplateSettingsModal({ template, userId, onClose, onSave }) {
         <form onSubmit={handleSubmit} className="template-form">
           {/* Photo Upload Section */}
           <div className="template-section">
-            <label className="template-label">공간 사진</label>
+            <label className="template-label">{t(country, 'spacePhoto')}</label>
             <div className="photo-upload-area">
               {formData.spacePhotoPreview ? (
                 <div className="photo-preview">
-                  <img src={formData.spacePhotoPreview} alt="공간 미리보기" />
+                  <img src={formData.spacePhotoPreview} alt="Space preview" />
                   <button
                     type="button"
                     className="remove-photo-btn"
@@ -146,7 +149,7 @@ function TemplateSettingsModal({ template, userId, onClose, onSave }) {
                       spacePhotoPreview: '',
                     }))}
                   >
-                    삭제
+                    {t(country, 'delete')}
                   </button>
                 </div>
               ) : (
@@ -159,8 +162,8 @@ function TemplateSettingsModal({ template, userId, onClose, onSave }) {
                   />
                   <div className="upload-placeholder">
                     <span className="upload-icon">+</span>
-                    <span>사진 업로드</span>
-                    <span className="upload-hint">최대 5MB</span>
+                    <span>{t(country, 'uploadPhoto')}</span>
+                    <span className="upload-hint">{t(country, 'maxFileSize')}</span>
                   </div>
                 </label>
               )}
@@ -169,46 +172,37 @@ function TemplateSettingsModal({ template, userId, onClose, onSave }) {
 
           {/* Price Section */}
           <div className="template-section">
-            <label className="template-label">기본 견적 금액</label>
+            <label className="template-label">{t(country, 'defaultPrice')}</label>
             <div className="price-row">
               <input
                 type="text"
                 name="defaultPrice"
                 value={formData.defaultPrice}
                 onChange={handlePriceChange}
-                placeholder="예: 100,000"
+                placeholder="100,000"
                 className="price-input"
               />
-              <select
-                name="currency"
-                value={formData.currency}
-                onChange={handleChange}
-                className="currency-select"
-              >
-                <option value="KRW">KRW (원)</option>
-                <option value="USD">USD ($)</option>
-                <option value="GBP">GBP (£)</option>
-                <option value="JPY">JPY (¥)</option>
-                <option value="EUR">EUR (€)</option>
-              </select>
+              <span className="currency-fixed-display">
+                {countryConfig.currency} ({countryConfig.currencySymbol})
+              </span>
             </div>
           </div>
 
           {/* Price Includes Section */}
           <div className="template-section">
-            <label className="template-label">가격 포함 항목</label>
+            <label className="template-label">{t(country, 'priceIncludes')}</label>
             <textarea
               name="priceIncludes"
               value={formData.priceIncludes}
               onChange={handleChange}
               rows="3"
-              placeholder="예: 장소 대여, 음향 장비, 주차 2대 무료"
+              placeholder={t(country, 'priceIncludesPlaceholder')}
             />
           </div>
 
           {/* Payment Method Section */}
           <div className="template-section">
-            <label className="template-label">결제 방식</label>
+            <label className="template-label">{t(country, 'paymentMethod')}</label>
             <div className="payment-options">
               <label className={`payment-option ${formData.paymentMethod === 'onsite' ? 'selected' : ''}`}>
                 <input
@@ -220,8 +214,8 @@ function TemplateSettingsModal({ template, userId, onClose, onSave }) {
                 />
                 <div className="option-content">
                   <span className="option-icon">💵</span>
-                  <span className="option-label">현장결제</span>
-                  <span className="option-desc">이용 당일 현장에서 결제</span>
+                  <span className="option-label">{t(country, 'onsitePayment')}</span>
+                  <span className="option-desc">{t(country, 'onsitePaymentDesc')}</span>
                 </div>
               </label>
               <label className={`payment-option ${formData.paymentMethod === 'online' ? 'selected' : ''}`}>
@@ -234,15 +228,15 @@ function TemplateSettingsModal({ template, userId, onClose, onSave }) {
                 />
                 <div className="option-content">
                   <span className="option-icon">💳</span>
-                  <span className="option-label">온라인결제</span>
-                  <span className="option-desc">관리자가 결제 링크를 생성합니다</span>
+                  <span className="option-label">{t(country, 'onlinePayment')}</span>
+                  <span className="option-desc">{t(country, 'onlinePaymentDesc')}</span>
                 </div>
               </label>
             </div>
           </div>
 
           <button type="submit" className="template-submit-btn" disabled={isLoading}>
-            {isLoading ? '저장 중...' : '템플릿 저장'}
+            {isLoading ? t(country, 'savingTemplate') : t(country, 'saveTemplate')}
           </button>
         </form>
       </div>
