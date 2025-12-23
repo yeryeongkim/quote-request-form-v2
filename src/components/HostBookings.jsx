@@ -114,7 +114,6 @@ function HostBookings() {
         console.log('Migration request check skipped:', e.message);
       }
 
-      console.log('Setting hasPendingRequest to:', hasPending);
       setBookings(bookingsData);
       setSettlements(settlementsData);
       setSpaces(spacesData);
@@ -163,29 +162,16 @@ function HostBookings() {
     );
   }
 
-  console.log('Rendering HostBookings, hasPendingRequest:', hasPendingRequest, 'shouldShowBanner:', !hasPendingRequest);
-
   return (
     <div className="host-bookings-container">
       <HostHeader user={user} country={country} />
 
-      {/* TEST: Very visible banner */}
-      <div style={{
-        background: 'red',
-        color: 'white',
-        padding: '20px',
-        fontSize: '24px',
-        fontWeight: 'bold',
-        textAlign: 'center',
-      }}>
-        🚀 TEST BANNER - 이 텍스트가 보이면 코드가 정상 작동중입니다 🚀
-      </div>
-
-      {/* Always render banner for debugging */}
-      <MigrationBanner
-        onClick={() => setShowMigrationModal(true)}
-        country={country}
-      />
+      {!hasPendingRequest && (
+        <MigrationBanner
+          onClick={() => setShowMigrationModal(true)}
+          country={country}
+        />
+      )}
 
       <main className="bookings-main">
         {/* 견적 예약 현황 */}
