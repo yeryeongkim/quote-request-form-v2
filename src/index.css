@@ -5,30 +5,668 @@
 }
 
 :root {
-  /* SpaceCloud Design System Colors - Light Theme */
-  --sc-primary: #7C3AED;
-  --sc-primary-hover: #6D28D9;
-  --sc-primary-light: #EDE9FE;
-  --sc-bg-body: #F5F5F7;
+  /* ========================================
+     SpaceCloud Design System
+     Based on spacecloud.city
+     ======================================== */
+
+  /* Primary Colors - spacecloud.city 기준 */
+  --sc-primary: #4F00F8;
+  --sc-primary-hover: #3E0BAC;
+  --sc-primary-dark: #271D3B;
+  --sc-primary-light: #F0EDFF;
+  --sc-primary-lighter: #F8F7FF;
+
+  /* Secondary Colors */
+  --sc-secondary: #1A1A1A;
+  --sc-secondary-hover: #333333;
+
+  /* Background Colors - spacecloud.city 기준 */
+  --sc-bg-body: #FFFFFF;
+  --sc-bg-gray: #F7F7F7;
   --sc-bg-card: #FFFFFF;
-  --sc-bg-card-hover: #F9FAFB;
+  --sc-bg-card-hover: #F3F3F3;
   --sc-bg-input: #FFFFFF;
-  --sc-text-primary: #1A1A1A;
-  --sc-text-secondary: #666666;
-  --sc-text-tertiary: #999999;
-  --sc-border: #E5E5E5;
-  --sc-border-focus: #7C3AED;
-  --sc-link: #7C3AED;
-  --sc-success: #10B981;
-  --sc-error: #EF4444;
-  --sc-warning: #F59E0B;
+  --sc-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Text Colors - spacecloud.city 기준 */
+  --sc-text-primary: #1F1F1F;
+  --sc-text-secondary: #767676;
+  --sc-text-tertiary: #AAAAAA;
+  --sc-text-placeholder: #767676;
+  --sc-text-inverse: #FFFFFF;
+
+  /* Border Colors - spacecloud.city 기준 */
+  --sc-border: #EBEBEB;
+  --sc-border-light: #F3F3F3;
+  --sc-border-dark: #D4D4D4;
+  --sc-border-focus: #4F00F8;
+
+  /* Status Colors - spacecloud.city 기준 */
+  --sc-success: #299444;
+  --sc-success-light: #EAF4EC;
+  --sc-error: #C22323;
+  --sc-error-light: #F9ECEC;
+  --sc-warning: #FF9500;
+  --sc-warning-light: #FFF8E1;
+  --sc-info: #007AFF;
+  --sc-info-light: #E3F2FD;
+
+  /* Link Color */
+  --sc-link: #4F00F8;
+  --sc-link-hover: #3E0BAC;
+
+  /* Shadows */
+  --sc-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --sc-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --sc-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --sc-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --sc-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
+
+  /* Border Radius */
+  --sc-radius-xs: 4px;
+  --sc-radius-sm: 6px;
+  --sc-radius-md: 8px;
+  --sc-radius-lg: 12px;
+  --sc-radius-xl: 16px;
+  --sc-radius-2xl: 24px;
+  --sc-radius-full: 9999px;
+
+  /* Spacing */
+  --sc-space-1: 4px;
+  --sc-space-2: 8px;
+  --sc-space-3: 12px;
+  --sc-space-4: 16px;
+  --sc-space-5: 20px;
+  --sc-space-6: 24px;
+  --sc-space-8: 32px;
+  --sc-space-10: 40px;
+  --sc-space-12: 48px;
+
+  /* Typography - Pretendard (spacecloud.city 기준) */
+  --sc-font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --sc-font-size-xs: 11px;
+  --sc-font-size-sm: 13px;
+  --sc-font-size-base: 14px;
+  --sc-font-size-md: 15px;
+  --sc-font-size-lg: 16px;
+  --sc-font-size-xl: 18px;
+  --sc-font-size-2xl: 20px;
+  --sc-font-size-3xl: 24px;
+  --sc-font-size-4xl: 32px;
+
+  /* Font Weights */
+  --sc-font-normal: 400;
+  --sc-font-medium: 500;
+  --sc-font-semibold: 600;
+  --sc-font-bold: 700;
+
+  /* Line Heights */
+  --sc-leading-tight: 1.25;
+  --sc-leading-normal: 1.5;
+  --sc-leading-relaxed: 1.75;
+
+  /* Transitions */
+  --sc-transition-fast: 0.15s ease;
+  --sc-transition-normal: 0.2s ease;
+  --sc-transition-slow: 0.3s ease;
+
+  /* Z-Index */
+  --sc-z-dropdown: 100;
+  --sc-z-sticky: 200;
+  --sc-z-modal: 300;
+  --sc-z-toast: 400;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--sc-bg-body);
   color: var(--sc-text-primary);
-  line-height: 1.5;
+  line-height: var(--sc-leading-normal);
 }
+
+/* ========================================
+   Button Components
+   ======================================== */
+
+/* Primary Button */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sc-space-2);
+  padding: 10px 20px;
+  background: var(--sc-primary);
+  color: var(--sc-text-inverse);
+  border: none;
+  border-radius: var(--sc-radius-md);
+  font-size: var(--sc-font-size-base);
+  font-weight: var(--sc-font-medium);
+  cursor: pointer;
+  transition: all var(--sc-transition-normal);
+  white-space: nowrap;
+}
+
+.btn-primary:hover {
+  background: var(--sc-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--sc-shadow-md);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  background: var(--sc-text-tertiary);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Secondary Button */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sc-space-2);
+  padding: 10px 20px;
+  background: var(--sc-bg-card);
+  color: var(--sc-text-primary);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  font-size: var(--sc-font-size-base);
+  font-weight: var(--sc-font-medium);
+  cursor: pointer;
+  transition: all var(--sc-transition-normal);
+  white-space: nowrap;
+}
+
+.btn-secondary:hover {
+  background: var(--sc-bg-gray);
+  border-color: var(--sc-border-dark);
+}
+
+.btn-secondary:disabled {
+  color: var(--sc-text-tertiary);
+  cursor: not-allowed;
+}
+
+/* Ghost Button */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sc-space-2);
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--sc-text-primary);
+  border: none;
+  border-radius: var(--sc-radius-md);
+  font-size: var(--sc-font-size-base);
+  font-weight: var(--sc-font-medium);
+  cursor: pointer;
+  transition: all var(--sc-transition-normal);
+}
+
+.btn-ghost:hover {
+  background: var(--sc-bg-gray);
+}
+
+/* Button Sizes */
+.btn-sm {
+  padding: 6px 12px;
+  font-size: var(--sc-font-size-sm);
+}
+
+.btn-lg {
+  padding: 14px 28px;
+  font-size: var(--sc-font-size-lg);
+}
+
+/* ========================================
+   Input Components
+   ======================================== */
+
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--sc-bg-input);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  font-size: var(--sc-font-size-base);
+  font-family: inherit;
+  color: var(--sc-text-primary);
+  transition: border-color var(--sc-transition-normal), box-shadow var(--sc-transition-normal);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--sc-border-focus);
+  box-shadow: 0 0 0 3px var(--sc-primary-light);
+}
+
+.input::placeholder {
+  color: var(--sc-text-placeholder);
+}
+
+.input:disabled {
+  background: var(--sc-bg-gray);
+  cursor: not-allowed;
+}
+
+/* Select */
+.select {
+  width: 100%;
+  padding: 12px 16px;
+  padding-right: 40px;
+  background: var(--sc-bg-input);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  font-size: var(--sc-font-size-base);
+  font-family: inherit;
+  color: var(--sc-text-primary);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  transition: border-color var(--sc-transition-normal);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--sc-border-focus);
+}
+
+/* Textarea */
+.textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--sc-bg-input);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  font-size: var(--sc-font-size-base);
+  font-family: inherit;
+  color: var(--sc-text-primary);
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color var(--sc-transition-normal);
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--sc-border-focus);
+  box-shadow: 0 0 0 3px var(--sc-primary-light);
+}
+
+/* ========================================
+   Card Components
+   ======================================== */
+
+.card {
+  background: var(--sc-bg-card);
+  border-radius: var(--sc-radius-lg);
+  border: 1px solid var(--sc-border);
+  box-shadow: var(--sc-shadow-sm);
+  overflow: hidden;
+}
+
+.card-hover {
+  transition: all var(--sc-transition-normal);
+}
+
+.card-hover:hover {
+  box-shadow: var(--sc-shadow-md);
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   Badge / Tag Components
+   ======================================== */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: var(--sc-font-size-xs);
+  font-weight: var(--sc-font-medium);
+  border-radius: var(--sc-radius-full);
+  white-space: nowrap;
+}
+
+.badge-primary {
+  background: var(--sc-primary);
+  color: var(--sc-text-inverse);
+}
+
+.badge-secondary {
+  background: var(--sc-bg-gray);
+  color: var(--sc-text-secondary);
+}
+
+.badge-outline {
+  background: transparent;
+  border: 1px solid var(--sc-border);
+  color: var(--sc-text-secondary);
+}
+
+.badge-success {
+  background: var(--sc-success-light);
+  color: var(--sc-success);
+}
+
+.badge-error {
+  background: var(--sc-error-light);
+  color: var(--sc-error);
+}
+
+.badge-warning {
+  background: var(--sc-warning-light);
+  color: var(--sc-warning);
+}
+
+/* ========================================
+   Filter Pill Components (SpaceCloud style)
+   ======================================== */
+
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sc-space-2);
+  padding: 8px 16px;
+  background: var(--sc-bg-card);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-full);
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-medium);
+  color: var(--sc-text-primary);
+  cursor: pointer;
+  transition: all var(--sc-transition-normal);
+}
+
+.filter-pill:hover {
+  border-color: var(--sc-border-dark);
+  background: var(--sc-bg-gray);
+}
+
+.filter-pill.active {
+  background: var(--sc-primary);
+  border-color: var(--sc-primary);
+  color: var(--sc-text-inverse);
+}
+
+/* ========================================
+   Map Pin Component (SpaceCloud style)
+   ======================================== */
+
+.map-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  background: var(--sc-primary);
+  color: var(--sc-text-inverse);
+  border-radius: var(--sc-radius-full);
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-semibold);
+  box-shadow: var(--sc-shadow-md);
+  white-space: nowrap;
+}
+
+.map-pin::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid var(--sc-primary);
+}
+
+/* ========================================
+   Category Icon Component (SpaceCloud style)
+   ======================================== */
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sc-space-2);
+  padding: var(--sc-space-3);
+  cursor: pointer;
+  transition: all var(--sc-transition-normal);
+  border-bottom: 2px solid transparent;
+}
+
+.category-item:hover {
+  color: var(--sc-primary);
+}
+
+.category-item.active {
+  color: var(--sc-primary);
+  border-bottom-color: var(--sc-primary);
+}
+
+.category-icon {
+  width: 28px;
+  height: 28px;
+  color: inherit;
+}
+
+.category-label {
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-medium);
+  color: inherit;
+}
+
+/* ========================================
+   Space Card Component (SpaceCloud style)
+   ======================================== */
+
+.space-card {
+  background: var(--sc-bg-card);
+  border-radius: var(--sc-radius-lg);
+  overflow: hidden;
+  transition: all var(--sc-transition-normal);
+}
+
+.space-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sc-shadow-lg);
+}
+
+.space-card-image {
+  position: relative;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+}
+
+.space-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.space-card-favorite {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  background: var(--sc-bg-card);
+  border-radius: var(--sc-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--sc-shadow-sm);
+  transition: all var(--sc-transition-normal);
+}
+
+.space-card-favorite:hover {
+  transform: scale(1.1);
+}
+
+.space-card-favorite.active {
+  color: var(--sc-error);
+}
+
+.space-card-content {
+  padding: var(--sc-space-4);
+}
+
+.space-card-title {
+  font-size: var(--sc-font-size-md);
+  font-weight: var(--sc-font-semibold);
+  color: var(--sc-text-primary);
+  margin-bottom: var(--sc-space-1);
+}
+
+.space-card-subtitle {
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-medium);
+  color: var(--sc-text-primary);
+  margin-bottom: var(--sc-space-2);
+}
+
+.space-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+  font-size: var(--sc-font-size-sm);
+  color: var(--sc-text-secondary);
+  margin-bottom: var(--sc-space-2);
+}
+
+.space-card-price {
+  font-size: var(--sc-font-size-base);
+  font-weight: var(--sc-font-bold);
+  color: var(--sc-text-primary);
+}
+
+.space-card-price span {
+  font-weight: var(--sc-font-normal);
+  color: var(--sc-text-secondary);
+}
+
+/* ========================================
+   Search Bar Component (SpaceCloud style)
+   ======================================== */
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: var(--sc-bg-card);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-full);
+  padding: 4px;
+  box-shadow: var(--sc-shadow-sm);
+}
+
+.search-bar-input {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  background: transparent;
+  font-size: var(--sc-font-size-base);
+  color: var(--sc-text-primary);
+}
+
+.search-bar-input:focus {
+  outline: none;
+}
+
+.search-bar-input::placeholder {
+  color: var(--sc-text-placeholder);
+}
+
+.search-bar-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--sc-border);
+}
+
+.search-bar-btn {
+  width: 44px;
+  height: 44px;
+  background: var(--sc-primary);
+  border: none;
+  border-radius: var(--sc-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sc-text-inverse);
+  cursor: pointer;
+  transition: background var(--sc-transition-normal);
+}
+
+.search-bar-btn:hover {
+  background: var(--sc-primary-hover);
+}
+
+/* ========================================
+   Toggle Switch Component
+   ======================================== */
+
+.toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: var(--sc-border);
+  border-radius: var(--sc-radius-full);
+  cursor: pointer;
+  transition: background var(--sc-transition-normal);
+}
+
+.toggle.active {
+  background: var(--sc-primary);
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: var(--sc-bg-card);
+  border-radius: var(--sc-radius-full);
+  box-shadow: var(--sc-shadow-sm);
+  transition: transform var(--sc-transition-normal);
+}
+
+.toggle.active::after {
+  transform: translateX(20px);
+}
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+
+.text-primary { color: var(--sc-text-primary); }
+.text-secondary { color: var(--sc-text-secondary); }
+.text-tertiary { color: var(--sc-text-tertiary); }
+.text-success { color: var(--sc-success); }
+.text-error { color: var(--sc-error); }
+.text-warning { color: var(--sc-warning); }
+
+.bg-body { background: var(--sc-bg-body); }
+.bg-gray { background: var(--sc-bg-gray); }
+.bg-card { background: var(--sc-bg-card); }
+.bg-primary { background: var(--sc-primary); }
+.bg-primary-light { background: var(--sc-primary-light); }
+
+.rounded-sm { border-radius: var(--sc-radius-sm); }
+.rounded-md { border-radius: var(--sc-radius-md); }
+.rounded-lg { border-radius: var(--sc-radius-lg); }
+.rounded-xl { border-radius: var(--sc-radius-xl); }
+.rounded-full { border-radius: var(--sc-radius-full); }
+
+.shadow-sm { box-shadow: var(--sc-shadow-sm); }
+.shadow-md { box-shadow: var(--sc-shadow-md); }
+.shadow-lg { box-shadow: var(--sc-shadow-lg); }
