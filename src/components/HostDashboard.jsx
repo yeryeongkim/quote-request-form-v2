@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase';
 import { isValidCountry, DEFAULT_COUNTRY, getCountryConfig, t, formatDate as formatDateUtil } from '../lib/countryConfig';
 import HostHeader from './HostHeader';
 import TemplateSettingsModal from './TemplateSettingsModal';
+import MigrationBanner from './MigrationBanner';
+import MigrationRequestModal from './MigrationRequestModal';
 import './HostDashboard.css';
 
 function HostDashboard() {
@@ -17,6 +19,9 @@ function HostDashboard() {
   const [error, setError] = useState(null);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [template, setTemplate] = useState(null);
+  const [showMigrationModal, setShowMigrationModal] = useState(false);
+  const [spaces, setSpaces] = useState([]);
+  const [hasPendingRequest, setHasPendingRequest] = useState(false);
 
   // 유효하지 않은 국가 코드인 경우 기본 국가로 리다이렉트
   useEffect(() => {
@@ -84,9 +89,31 @@ function HostDashboard() {
         .eq('host_id', userId)
         .maybeSingle();
 
+      // Load spaces for migration modal
+      const { data: spacesData } = await supabase
+        .from('host_quotes')
+        .select('id, space_name, quote_request_id, created_at, quote_requests(id, email, desired_date)')
+        .eq('host_id', userId)
+        .order('created_at', { ascending: false });
+
+      // Check for pending migration request
+      const { data: existingRequest, error: migrationError } = await supabase
+        .from('migration_requests')
+        .select('id, status')
+        .eq('host_id', userId)
+        .eq('status', 'pending')
+        .maybeSingle();
+
+      let hasPending = false;
+      if (!migrationError) {
+        hasPending = !!existingRequest;
+      }
+
       setRequests(requestsData || []);
       setHostQuotes(quotesMap);
       setTemplate(templateData || null);
+      setSpaces(spacesData || []);
+      setHasPendingRequest(hasPending);
     } catch (err) {
       console.error('Error loading data:', err);
       setError(`${t(country, 'loadDataError')}: ${err.message}`);
@@ -130,6 +157,12 @@ function HostDashboard() {
   return (
     <div className="host-dashboard-container">
       <HostHeader user={user} country={country} />
+
+      {/* Migration Banner */}
+      <MigrationBanner
+        onClick={() => setShowMigrationModal(true)}
+        country={country}
+      />
 
       <div className="dashboard-subheader">
         <h1>{t(country, 'quoteRequestManagement')}</h1>
@@ -224,6 +257,16 @@ function HostDashboard() {
             setShowTemplateModal(false);
           }}
           country={country}
+        />
+      )}
+
+      {showMigrationModal && (
+        <MigrationRequestModal
+          user={user}
+          spaces={spaces}
+          country={country}
+          onClose={() => setShowMigrationModal(false)}
+          onSuccess={() => setHasPendingRequest(true)}
         />
       )}
     </div>
