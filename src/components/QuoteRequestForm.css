@@ -248,7 +248,7 @@
 
 .success-message h2 {
   font-size: var(--sc-font-size-3xl);
-  color: var(--sc-success);
+  color: var(--sc-primary);
   margin-bottom: var(--sc-space-3);
 }
 
