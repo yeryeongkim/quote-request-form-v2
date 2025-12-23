@@ -2,6 +2,8 @@
   max-width: 900px;
   margin: 0 auto;
   padding: var(--sc-space-10) var(--sc-space-5);
+  background: #FFFFFF;
+  min-height: 100vh;
 }
 
 .search-header {
