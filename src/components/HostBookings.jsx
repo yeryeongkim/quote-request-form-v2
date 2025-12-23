@@ -156,12 +156,11 @@ function HostBookings() {
     <div className="host-bookings-container">
       <HostHeader user={user} country={country} />
 
-      {!hasPendingRequest && (
-        <MigrationBanner
-          onClick={() => setShowMigrationModal(true)}
-          country={country}
-        />
-      )}
+      {/* Always render banner for debugging */}
+      <MigrationBanner
+        onClick={() => setShowMigrationModal(true)}
+        country={country}
+      />
 
       <main className="bookings-main">
         {/* 견적 예약 현황 */}
