@@ -134,14 +134,18 @@
   white-space: nowrap;
 }
 
-.phone-input-wrapper input {
+.phone-input-wrapper input,
+.form-group .phone-input-wrapper input {
   border: none;
   border-radius: 0;
   flex: 1;
+  padding: var(--sc-space-3) 14px;
 }
 
-.phone-input-wrapper input:focus {
+.phone-input-wrapper input:focus,
+.form-group .phone-input-wrapper input:focus {
   box-shadow: none;
+  border: none;
 }
 
 .form-group textarea {
