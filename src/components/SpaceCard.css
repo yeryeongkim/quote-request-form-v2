@@ -4,7 +4,7 @@
   flex-direction: column;
   gap: 12px;
   background: var(--sc-bg-card);
-  border: 2px solid transparent;
+  border: 1px solid var(--sc-border-dark);
   border-radius: var(--sc-radius-lg);
   padding: var(--sc-space-5);
   transition: all var(--sc-transition-normal);
@@ -13,6 +13,7 @@
 
 .space-card:hover {
   box-shadow: var(--sc-shadow-md);
+  border-color: var(--sc-text-secondary);
 }
 
 .space-card.selectable {
@@ -20,7 +21,7 @@
 }
 
 .space-card.selectable:hover {
-  border-color: var(--sc-border-dark);
+  border-color: var(--sc-text-secondary);
 }
 
 .space-card.selected {
