@@ -86,17 +86,23 @@ function HostBookings() {
       if (spacesError) throw spacesError;
 
       // Check if host already has a pending migration request
-      const { data: existingRequest } = await supabase
-        .from('migration_requests')
-        .select('id, status')
-        .eq('host_id', userId)
-        .eq('status', 'pending')
-        .maybeSingle();
+      let hasPending = false;
+      try {
+        const { data: existingRequest } = await supabase
+          .from('migration_requests')
+          .select('id, status')
+          .eq('host_id', userId)
+          .eq('status', 'pending')
+          .maybeSingle();
+        hasPending = !!existingRequest;
+      } catch (migrationError) {
+        console.log('Migration request check skipped:', migrationError);
+      }
 
       setBookings(bookingsData || []);
       setSettlements(settlementsData || []);
       setSpaces(spacesData || []);
-      setHasPendingRequest(!!existingRequest);
+      setHasPendingRequest(hasPending);
     } catch (err) {
       console.error('Error loading data:', err);
       setError(`${t(country, 'loadDataError')}: ${err.message}`);
