@@ -345,12 +345,16 @@ function QuoteRequestForm() {
             },
           ]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error details:', error.message, error.details, error.hint, error.code);
+          throw error;
+        }
 
         console.log('Form submitted to Supabase');
         setIsSubmitted(true);
       } catch (error) {
         console.error('Error submitting form:', error);
+        console.error('Full error object:', JSON.stringify(error, null, 2));
         alert(text.submitError);
       } finally {
         setIsLoading(false);
