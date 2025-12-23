@@ -169,6 +169,18 @@ function HostBookings() {
     <div className="host-bookings-container">
       <HostHeader user={user} country={country} />
 
+      {/* TEST: Very visible banner */}
+      <div style={{
+        background: 'red',
+        color: 'white',
+        padding: '20px',
+        fontSize: '24px',
+        fontWeight: 'bold',
+        textAlign: 'center',
+      }}>
+        🚀 TEST BANNER - 이 텍스트가 보이면 코드가 정상 작동중입니다 🚀
+      </div>
+
       {/* Always render banner for debugging */}
       <MigrationBanner
         onClick={() => setShowMigrationModal(true)}
