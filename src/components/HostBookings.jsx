@@ -87,18 +87,21 @@ function HostBookings() {
 
       // Check if host already has a pending migration request
       let hasPending = false;
-      try {
-        const { data: existingRequest } = await supabase
-          .from('migration_requests')
-          .select('id, status')
-          .eq('host_id', userId)
-          .eq('status', 'pending')
-          .maybeSingle();
+      const { data: existingRequest, error: migrationError } = await supabase
+        .from('migration_requests')
+        .select('id, status')
+        .eq('host_id', userId)
+        .eq('status', 'pending')
+        .maybeSingle();
+
+      if (migrationError) {
+        // Table might not exist yet, that's OK - show banner anyway
+        console.log('Migration request check skipped:', migrationError.message);
+      } else {
         hasPending = !!existingRequest;
-      } catch (migrationError) {
-        console.log('Migration request check skipped:', migrationError);
       }
 
+      console.log('Setting hasPendingRequest to:', hasPending);
       setBookings(bookingsData || []);
       setSettlements(settlementsData || []);
       setSpaces(spacesData || []);
@@ -146,6 +149,8 @@ function HostBookings() {
       </div>
     );
   }
+
+  console.log('Rendering HostBookings, hasPendingRequest:', hasPendingRequest, 'shouldShowBanner:', !hasPendingRequest);
 
   return (
     <div className="host-bookings-container">
