@@ -92,6 +92,7 @@
   background-position: right 14px center;
   padding-right: 36px;
   cursor: pointer;
+  min-width: 140px;
 }
 
 .form-group input:focus,
@@ -154,7 +155,7 @@
   gap: var(--sc-space-4);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 540px) {
   .form-row {
     grid-template-columns: 1fr;
   }
