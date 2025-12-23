@@ -341,7 +341,7 @@ function QuoteRequestForm() {
               number_of_people: parseInt(formData.numberOfPeople),
               requests: formData.requests,
               selected_spaces: selectedSpaces.length > 0 ? JSON.stringify(selectedSpaces) : null,
-              country: country, // 국가 코드 저장
+              form_locale: country, // 폼 제출 국가/언어 (korea, uk, usa 등)
             },
           ]);
 
