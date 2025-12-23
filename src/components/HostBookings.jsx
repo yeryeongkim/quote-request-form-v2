@@ -58,53 +58,66 @@ function HostBookings() {
     setError(null);
 
     try {
-      // Load bookings for this host
-      const { data: bookingsData, error: bookingsError } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('host_id', userId)
-        .order('created_at', { ascending: false });
+      // Load bookings for this host (table might not exist)
+      let bookingsData = [];
+      try {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select('*')
+          .eq('host_id', userId)
+          .order('created_at', { ascending: false });
+        if (!error) bookingsData = data || [];
+      } catch (e) {
+        console.log('Bookings query skipped:', e.message);
+      }
 
-      if (bookingsError) throw bookingsError;
-
-      // Load settlements for this host
-      const { data: settlementsData, error: settlementsError } = await supabase
-        .from('settlements')
-        .select('*, bookings(*)')
-        .eq('host_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (settlementsError) throw settlementsError;
+      // Load settlements for this host (table might not exist)
+      let settlementsData = [];
+      try {
+        const { data, error } = await supabase
+          .from('settlements')
+          .select('*, bookings(*)')
+          .eq('host_id', userId)
+          .order('created_at', { ascending: false });
+        if (!error) settlementsData = data || [];
+      } catch (e) {
+        console.log('Settlements query skipped:', e.message);
+      }
 
       // Load host's quotes with space_name (for space selection in migration modal)
-      const { data: spacesData, error: spacesError } = await supabase
-        .from('host_quotes')
-        .select('id, space_name, quote_request_id, created_at, quote_requests(id, email, desired_date)')
-        .eq('host_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (spacesError) throw spacesError;
+      let spacesData = [];
+      try {
+        const { data, error } = await supabase
+          .from('host_quotes')
+          .select('id, space_name, quote_request_id, created_at, quote_requests(id, email, desired_date)')
+          .eq('host_id', userId)
+          .order('created_at', { ascending: false });
+        if (!error) spacesData = data || [];
+      } catch (e) {
+        console.log('Spaces query skipped:', e.message);
+      }
 
       // Check if host already has a pending migration request
       let hasPending = false;
-      const { data: existingRequest, error: migrationError } = await supabase
-        .from('migration_requests')
-        .select('id, status')
-        .eq('host_id', userId)
-        .eq('status', 'pending')
-        .maybeSingle();
+      try {
+        const { data: existingRequest, error: migrationError } = await supabase
+          .from('migration_requests')
+          .select('id, status')
+          .eq('host_id', userId)
+          .eq('status', 'pending')
+          .maybeSingle();
 
-      if (migrationError) {
-        // Table might not exist yet, that's OK - show banner anyway
-        console.log('Migration request check skipped:', migrationError.message);
-      } else {
-        hasPending = !!existingRequest;
+        if (!migrationError) {
+          hasPending = !!existingRequest;
+        }
+      } catch (e) {
+        console.log('Migration request check skipped:', e.message);
       }
 
       console.log('Setting hasPendingRequest to:', hasPending);
-      setBookings(bookingsData || []);
-      setSettlements(settlementsData || []);
-      setSpaces(spacesData || []);
+      setBookings(bookingsData);
+      setSettlements(settlementsData);
+      setSpaces(spacesData);
       setHasPendingRequest(hasPending);
     } catch (err) {
       console.error('Error loading data:', err);
