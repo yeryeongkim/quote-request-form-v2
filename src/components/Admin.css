@@ -19,6 +19,53 @@
   color: var(--sc-text-primary);
 }
 
+/* Admin Tabs */
+.admin-tabs {
+  display: flex;
+  gap: var(--sc-space-1);
+  padding: 0 var(--sc-space-8);
+  background: var(--sc-bg-card);
+  border-bottom: 1px solid var(--sc-border);
+}
+
+.admin-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-2);
+  padding: var(--sc-space-4) var(--sc-space-6);
+  background: none;
+  border: none;
+  font-size: var(--sc-font-size-base);
+  font-weight: var(--sc-font-medium);
+  color: var(--sc-text-secondary);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  transition: all var(--sc-transition-normal);
+}
+
+.admin-tab:hover {
+  color: var(--sc-text-primary);
+  background: var(--sc-bg-gray);
+}
+
+.admin-tab.active {
+  color: var(--sc-primary);
+  border-bottom-color: var(--sc-primary);
+}
+
+.admin-tab .tab-count {
+  background: var(--sc-bg-gray);
+  padding: 2px 8px;
+  border-radius: var(--sc-radius-full);
+  font-size: var(--sc-font-size-xs);
+}
+
+.admin-tab.active .tab-count {
+  background: var(--sc-primary-light);
+  color: var(--sc-primary);
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -871,3 +918,40 @@
   background: var(--sc-error);
   color: var(--sc-text-inverse);
 }
+
+/* Migration Request Styles */
+.migration-spaces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sc-space-2);
+}
+
+.space-id-badge {
+  display: inline-block;
+  background: var(--sc-bg-gray);
+  color: var(--sc-text-secondary);
+  padding: var(--sc-space-2) var(--sc-space-3);
+  border-radius: var(--sc-radius-sm);
+  font-size: var(--sc-font-size-sm);
+  font-family: monospace;
+}
+
+.status-select {
+  padding: var(--sc-space-2) var(--sc-space-4);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  font-size: var(--sc-font-size-base);
+  background: var(--sc-bg-card);
+  cursor: pointer;
+}
+
+.status-select:focus {
+  outline: none;
+  border-color: var(--sc-primary);
+  box-shadow: 0 0 0 2px var(--sc-primary-light);
+}
+
+.status-actions {
+  margin-top: var(--sc-space-3);
+}
+

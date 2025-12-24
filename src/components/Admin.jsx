@@ -30,6 +30,13 @@ const PAYMENT_OPTIONS = [
   { value: 'onsite', label: '현장결제' },
 ];
 
+// 이관 신청 상태 정의
+const MIGRATION_STATUS_OPTIONS = [
+  { value: 'pending', label: '대기 중', color: '#f59e0b' },
+  { value: 'approved', label: '승인', color: '#10b981' },
+  { value: 'rejected', label: '거절', color: '#ef4444' },
+];
+
 function Admin() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -50,6 +57,14 @@ function Admin() {
   // 필터 상태
   const [statusFilter, setStatusFilter] = useState('all');
   const [paymentFilter, setPaymentFilter] = useState('all');
+
+  // 탭 상태
+  const [activeTab, setActiveTab] = useState('quotes'); // 'quotes' or 'migrations'
+
+  // 이관 신청 상태
+  const [migrationRequests, setMigrationRequests] = useState([]);
+  const [selectedMigration, setSelectedMigration] = useState(null);
+  const [migrationStatusFilter, setMigrationStatusFilter] = useState('all');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -182,6 +197,20 @@ function Admin() {
       }));
 
       setRequests(mapped);
+
+      // Load migration requests
+      try {
+        const { data: migrationsData, error: migrationsError } = await supabase
+          .from('migration_requests')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!migrationsError && migrationsData) {
+          setMigrationRequests(migrationsData);
+        }
+      } catch (migrationErr) {
+        console.log('Migration requests table may not exist:', migrationErr);
+      }
 
     } catch (err) {
       console.error('Error loading data:', err);
@@ -561,6 +590,49 @@ function Admin() {
     }
   };
 
+  // 이관 신청 상태 업데이트
+  const updateMigrationStatus = async (migrationId, newStatus) => {
+    try {
+      const { error } = await supabase
+        .from('migration_requests')
+        .update({ status: newStatus })
+        .eq('id', migrationId);
+
+      if (error) throw error;
+
+      setMigrationRequests(prev => prev.map(m =>
+        m.id === migrationId ? { ...m, status: newStatus } : m
+      ));
+
+      if (selectedMigration?.id === migrationId) {
+        setSelectedMigration(prev => ({ ...prev, status: newStatus }));
+      }
+
+      alert('상태가 변경되었습니다.');
+    } catch (err) {
+      console.error('Error updating migration status:', err);
+      alert(`상태 변경 오류: ${err.message}`);
+    }
+  };
+
+  // 이관 신청 필터링
+  const filteredMigrations = migrationRequests.filter(m => {
+    if (migrationStatusFilter !== 'all' && m.status !== migrationStatusFilter) {
+      return false;
+    }
+    return true;
+  });
+
+  const getMigrationStatusLabel = (status) => {
+    const option = MIGRATION_STATUS_OPTIONS.find(opt => opt.value === status);
+    return option ? option.label : '대기 중';
+  };
+
+  const getMigrationStatusColor = (status) => {
+    const option = MIGRATION_STATUS_OPTIONS.find(opt => opt.value === status);
+    return option ? option.color : '#f59e0b';
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
@@ -595,7 +667,7 @@ function Admin() {
   return (
     <div className="admin-container">
       <header className="admin-header">
-        <h1>견적 요청 관리</h1>
+        <h1>관리자</h1>
         <div className="header-actions">
           <span className="user-info">{user.user_metadata?.name || user.email}</span>
           <button className="refresh-btn" onClick={loadData} disabled={isLoading}>
@@ -605,7 +677,27 @@ function Admin() {
         </div>
       </header>
 
+      {/* 탭 네비게이션 */}
+      <div className="admin-tabs">
+        <button
+          className={`admin-tab ${activeTab === 'quotes' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('quotes'); setSelectedMigration(null); }}
+        >
+          견적 요청
+          <span className="tab-count">{requests.length}</span>
+        </button>
+        <button
+          className={`admin-tab ${activeTab === 'migrations' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('migrations'); setSelectedRequest(null); }}
+        >
+          이관 신청
+          <span className="tab-count">{migrationRequests.length}</span>
+        </button>
+      </div>
+
       <div className="admin-content">
+        {activeTab === 'quotes' ? (
+        <>
         <div className="requests-list">
           <div className="list-header">
             <h2>요청 목록 ({filteredRequests.length}건)</h2>
@@ -970,6 +1062,146 @@ function Admin() {
             </div>
           )}
         </div>
+        </>
+        ) : (
+        <>
+        {/* 이관 신청 목록 */}
+        <div className="requests-list">
+          <div className="list-header">
+            <h2>이관 신청 목록 ({filteredMigrations.length}건)</h2>
+          </div>
+
+          <div className="filter-section">
+            <div className="filter-group">
+              <label>상태</label>
+              <select
+                value={migrationStatusFilter}
+                onChange={(e) => setMigrationStatusFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">전체</option>
+                {MIGRATION_STATUS_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="loading-state">
+              <p>데이터를 불러오는 중...</p>
+            </div>
+          ) : migrationRequests.length === 0 ? (
+            <div className="empty-state">
+              <p>아직 이관 신청이 없습니다.</p>
+            </div>
+          ) : (
+            <ul className="request-items">
+              {filteredMigrations.map((migration) => (
+                <li
+                  key={migration.id}
+                  className={`request-item ${selectedMigration?.id === migration.id ? 'active' : ''}`}
+                  onClick={() => setSelectedMigration(migration)}
+                >
+                  <div className="request-summary">
+                    <span className="request-email">{migration.host_name || migration.host_email}</span>
+                    <span className="request-date">{formatDate(migration.created_at)}</span>
+                  </div>
+                  <div className="request-info">
+                    <span>{migration.host_email}</span>
+                    <span
+                      className="status-badge"
+                      style={{ backgroundColor: getMigrationStatusColor(migration.status), color: '#fff' }}
+                    >
+                      {getMigrationStatusLabel(migration.status)}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* 이관 신청 상세 */}
+        <div className="request-detail">
+          {selectedMigration ? (
+            <>
+              <div className="detail-header">
+                <h2>이관 신청 상세</h2>
+              </div>
+
+              <div className="detail-content">
+                {/* 상태 관리 */}
+                <div className="detail-section status-management">
+                  <h3>상태 관리</h3>
+                  <div className="current-status">
+                    현재 상태:
+                    <span
+                      className="status-badge-large"
+                      style={{ backgroundColor: getMigrationStatusColor(selectedMigration.status) }}
+                    >
+                      {getMigrationStatusLabel(selectedMigration.status)}
+                    </span>
+                  </div>
+                  <div className="status-actions">
+                    <select
+                      className="status-select"
+                      value={selectedMigration.status}
+                      onChange={(e) => updateMigrationStatus(selectedMigration.id, e.target.value)}
+                    >
+                      {MIGRATION_STATUS_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* 호스트 정보 */}
+                <div className="detail-section">
+                  <h3>호스트 정보</h3>
+                  <div className="detail-row">
+                    <label>이름</label>
+                    <span>{selectedMigration.host_name || '-'}</span>
+                  </div>
+                  <div className="detail-row">
+                    <label>이메일</label>
+                    <span>{selectedMigration.host_email}</span>
+                  </div>
+                  <div className="detail-row">
+                    <label>연락처</label>
+                    <span>{selectedMigration.host_phone || '-'}</span>
+                  </div>
+                </div>
+
+                {/* 선택된 공간 */}
+                <div className="detail-section">
+                  <h3>이관 요청 공간</h3>
+                  {selectedMigration.space_ids ? (
+                    <div className="migration-spaces">
+                      {JSON.parse(selectedMigration.space_ids).map((spaceId, idx) => (
+                        <span key={idx} className="space-id-badge">{spaceId}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>선택된 공간 없음</p>
+                  )}
+                </div>
+
+                {/* 신청 일시 */}
+                <div className="detail-section">
+                  <h3>신청 일시</h3>
+                  <span>{formatDate(selectedMigration.created_at)}</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="empty-detail">
+              <p>신청을 선택하면 상세 정보가 표시됩니다.</p>
+            </div>
+          )}
+        </div>
+        </>
+        )}
       </div>
     </div>
   );
