@@ -200,6 +200,16 @@ export const TRANSLATIONS = {
     spaceName: '공간명',
     spaceNamePlaceholder: '예: 강남 스튜디오 A',
 
+    // Settlement Info
+    settlementInfo: '정산 정보',
+    settlementInfoDesc: '온라인 결제 완료 후 정산받을 계좌 정보를 입력해주세요.',
+    bankName: '은행명',
+    bankNamePlaceholder: '예: 국민은행',
+    accountNumber: '계좌번호',
+    accountNumberPlaceholder: '숫자만 입력',
+    accountHolder: '예금주',
+    accountHolderPlaceholder: '예금주명 입력',
+
     // Common
     required: '*',
     retry: '다시 시도',
@@ -335,6 +345,24 @@ export const TRANSLATIONS = {
     spaceName: 'Space Name',
     spaceNamePlaceholder: 'e.g., Gangnam Studio A',
 
+    // Settlement Info
+    settlementInfo: 'Settlement Info',
+    settlementInfoDesc: 'Enter your bank account details to receive settlement after payment.',
+    bankName: 'Bank Name',
+    bankNamePlaceholder: 'e.g., Barclays',
+    accountNumber: 'Account Number',
+    accountNumberPlaceholder: 'Enter account number',
+    accountHolder: 'Account Holder Name',
+    accountHolderPlaceholder: 'Enter account holder name',
+    sortCode: 'Sort Code',
+    sortCodePlaceholder: '6 digits (e.g., 12-34-56)',
+    routingNumber: 'Routing Number',
+    routingNumberPlaceholder: '9 digits',
+    transitNumber: 'Transit Number',
+    transitNumberPlaceholder: '5 digits',
+    institutionNumber: 'Institution Number',
+    institutionNumberPlaceholder: '3 digits',
+
     // Common
     required: '*',
     retry: 'Retry',
@@ -469,6 +497,18 @@ export const TRANSLATIONS = {
     // Space Name
     spaceName: 'スペース名',
     spaceNamePlaceholder: '例：江南スタジオA',
+
+    // Settlement Info
+    settlementInfo: '精算情報',
+    settlementInfoDesc: 'オンライン決済完了後、精算を受け取る口座情報を入力してください。',
+    bankName: '銀行名',
+    bankNamePlaceholder: '例：三菱UFJ銀行',
+    branchName: '支店名',
+    branchNamePlaceholder: '例：渋谷支店',
+    accountNumber: '口座番号',
+    accountNumberPlaceholder: '数字のみ入力',
+    accountHolder: '口座名義',
+    accountHolderPlaceholder: '口座名義を入力',
 
     // Common
     required: '*',

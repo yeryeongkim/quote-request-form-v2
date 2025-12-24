@@ -1089,6 +1089,61 @@ function Admin() {
                       )}
                     </div>
 
+                    {/* 온라인결제 시 호스트 정산 정보 */}
+                    {hostQuote.payment_method === 'online' && hostQuote.settlement_info && (
+                      <div className="settlement-info-box">
+                        <h4>호스트 정산 정보</h4>
+                        {hostQuote.settlement_info.bankName && (
+                          <div className="detail-row">
+                            <label>은행명</label>
+                            <span>{hostQuote.settlement_info.bankName}</span>
+                          </div>
+                        )}
+                        {hostQuote.settlement_info.branchName && (
+                          <div className="detail-row">
+                            <label>지점명</label>
+                            <span>{hostQuote.settlement_info.branchName}</span>
+                          </div>
+                        )}
+                        {hostQuote.settlement_info.sortCode && (
+                          <div className="detail-row">
+                            <label>Sort Code</label>
+                            <span>{hostQuote.settlement_info.sortCode}</span>
+                          </div>
+                        )}
+                        {hostQuote.settlement_info.routingNumber && (
+                          <div className="detail-row">
+                            <label>Routing Number</label>
+                            <span>{hostQuote.settlement_info.routingNumber}</span>
+                          </div>
+                        )}
+                        {hostQuote.settlement_info.transitNumber && (
+                          <div className="detail-row">
+                            <label>Transit Number</label>
+                            <span>{hostQuote.settlement_info.transitNumber}</span>
+                          </div>
+                        )}
+                        {hostQuote.settlement_info.institutionNumber && (
+                          <div className="detail-row">
+                            <label>Institution Number</label>
+                            <span>{hostQuote.settlement_info.institutionNumber}</span>
+                          </div>
+                        )}
+                        {hostQuote.settlement_info.accountNumber && (
+                          <div className="detail-row">
+                            <label>계좌번호</label>
+                            <span>{hostQuote.settlement_info.accountNumber}</span>
+                          </div>
+                        )}
+                        {hostQuote.settlement_info.accountHolder && (
+                          <div className="detail-row">
+                            <label>예금주</label>
+                            <span>{hostQuote.settlement_info.accountHolder}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* 현장결제: 호스트가 이미 발송했으므로 상태만 표시 */}
                     {hostQuote.payment_method === 'onsite' && hostQuote.status === 'sent' && (
                       <div className="onsite-sent-notice">

@@ -11,12 +11,23 @@ function TemplateSettingsModal({ template, userId, onClose, onSave, country = DE
   const countryConfig = getCountryConfig(country);
 
   // 화폐는 국가별로 고정
+  const existingSettlementInfo = template?.settlement_info || {};
   const [formData, setFormData] = useState({
     spacePhoto: null,
     spacePhotoPreview: template?.space_photo_url || '',
     defaultPrice: template?.default_price ? template.default_price.toLocaleString() : '',
     priceIncludes: template?.price_includes || '',
     paymentMethod: template?.payment_method || 'onsite',
+    settlementInfo: {
+      bankName: existingSettlementInfo.bankName || '',
+      accountNumber: existingSettlementInfo.accountNumber || '',
+      accountHolder: existingSettlementInfo.accountHolder || '',
+      sortCode: existingSettlementInfo.sortCode || '',
+      routingNumber: existingSettlementInfo.routingNumber || '',
+      branchName: existingSettlementInfo.branchName || '',
+      transitNumber: existingSettlementInfo.transitNumber || '',
+      institutionNumber: existingSettlementInfo.institutionNumber || '',
+    }
   });
 
   const handleChange = (e) => {
@@ -29,6 +40,18 @@ function TemplateSettingsModal({ template, userId, onClose, onSave, country = DE
     const value = e.target.value.replace(/[^0-9]/g, '');
     const formatted = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     setFormData((prev) => ({ ...prev, defaultPrice: formatted }));
+    setError('');
+  };
+
+  const handleSettlementInfoChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      settlementInfo: {
+        ...prev.settlementInfo,
+        [name]: value,
+      }
+    }));
     setError('');
   };
 
@@ -90,6 +113,7 @@ function TemplateSettingsModal({ template, userId, onClose, onSave, country = DE
         currency: countryConfig.currency, // 국가별 고정 화폐
         price_includes: formData.priceIncludes || null,
         payment_method: formData.paymentMethod,
+        settlement_info: formData.paymentMethod === 'online' ? formData.settlementInfo : null,
         updated_at: new Date().toISOString(),
       };
 
@@ -234,6 +258,124 @@ function TemplateSettingsModal({ template, userId, onClose, onSave, country = DE
               </label>
             </div>
           </div>
+
+          {/* 온라인결제 선택 시 정산 정보 입력 */}
+          {formData.paymentMethod === 'online' && (
+            <div className="template-section settlement-section">
+              <label className="template-label">{t(country, 'settlementInfo')}</label>
+              <p className="settlement-desc">{t(country, 'settlementInfoDesc')}</p>
+
+              <div className="settlement-fields">
+                {/* 공통 필드: 은행명 */}
+                <div className="settlement-field">
+                  <label>{t(country, 'bankName')}</label>
+                  <input
+                    type="text"
+                    name="bankName"
+                    value={formData.settlementInfo.bankName}
+                    onChange={handleSettlementInfoChange}
+                    placeholder={t(country, 'bankNamePlaceholder')}
+                  />
+                </div>
+
+                {/* Japan: 지점명 */}
+                {country === 'japan' && (
+                  <div className="settlement-field">
+                    <label>{t(country, 'branchName')}</label>
+                    <input
+                      type="text"
+                      name="branchName"
+                      value={formData.settlementInfo.branchName}
+                      onChange={handleSettlementInfoChange}
+                      placeholder={t(country, 'branchNamePlaceholder')}
+                    />
+                  </div>
+                )}
+
+                {/* UK: Sort Code */}
+                {country === 'uk' && (
+                  <div className="settlement-field">
+                    <label>{t(country, 'sortCode')}</label>
+                    <input
+                      type="text"
+                      name="sortCode"
+                      value={formData.settlementInfo.sortCode}
+                      onChange={handleSettlementInfoChange}
+                      placeholder={t(country, 'sortCodePlaceholder')}
+                      maxLength={8}
+                    />
+                  </div>
+                )}
+
+                {/* USA: Routing Number */}
+                {country === 'usa' && (
+                  <div className="settlement-field">
+                    <label>{t(country, 'routingNumber')}</label>
+                    <input
+                      type="text"
+                      name="routingNumber"
+                      value={formData.settlementInfo.routingNumber}
+                      onChange={handleSettlementInfoChange}
+                      placeholder={t(country, 'routingNumberPlaceholder')}
+                      maxLength={9}
+                    />
+                  </div>
+                )}
+
+                {/* Canada: Transit Number + Institution Number */}
+                {country === 'canada' && (
+                  <div className="settlement-row">
+                    <div className="settlement-field">
+                      <label>{t(country, 'transitNumber')}</label>
+                      <input
+                        type="text"
+                        name="transitNumber"
+                        value={formData.settlementInfo.transitNumber}
+                        onChange={handleSettlementInfoChange}
+                        placeholder={t(country, 'transitNumberPlaceholder')}
+                        maxLength={5}
+                      />
+                    </div>
+                    <div className="settlement-field">
+                      <label>{t(country, 'institutionNumber')}</label>
+                      <input
+                        type="text"
+                        name="institutionNumber"
+                        value={formData.settlementInfo.institutionNumber}
+                        onChange={handleSettlementInfoChange}
+                        placeholder={t(country, 'institutionNumberPlaceholder')}
+                        maxLength={3}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 공통 필드: 계좌번호 */}
+                <div className="settlement-field">
+                  <label>{t(country, 'accountNumber')}</label>
+                  <input
+                    type="text"
+                    name="accountNumber"
+                    value={formData.settlementInfo.accountNumber}
+                    onChange={handleSettlementInfoChange}
+                    placeholder={t(country, 'accountNumberPlaceholder')}
+                  />
+                </div>
+
+                {/* 공통 필드: 예금주 */}
+                <div className="settlement-field">
+                  <label>{t(country, 'accountHolder')}</label>
+                  <input
+                    type="text"
+                    name="accountHolder"
+                    value={formData.settlementInfo.accountHolder}
+                    onChange={handleSettlementInfoChange}
+                    placeholder={t(country, 'accountHolderPlaceholder')}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           <button type="submit" className="template-submit-btn" disabled={isLoading}>
             {isLoading ? t(country, 'savingTemplate') : t(country, 'saveTemplate')}

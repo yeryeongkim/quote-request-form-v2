@@ -574,6 +574,42 @@
   color: var(--sc-warning);
 }
 
+/* Settlement Section */
+.settlement-section {
+  background: var(--sc-primary-light);
+  padding: var(--sc-space-5);
+  border-radius: var(--sc-radius-lg);
+  border: 1px solid var(--sc-primary);
+}
+
+.settlement-section h3 {
+  color: var(--sc-primary);
+  border-bottom-color: var(--sc-primary);
+}
+
+.section-desc {
+  font-size: var(--sc-font-size-sm);
+  color: var(--sc-text-secondary);
+  margin-bottom: var(--sc-space-5);
+  line-height: var(--sc-leading-relaxed);
+}
+
+.settlement-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sc-space-4);
+}
+
+.settlement-fields .form-group {
+  margin-bottom: 0;
+}
+
+.settlement-fields .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sc-space-4);
+}
+
 @media (max-width: 600px) {
   .quote-form {
     padding: var(--sc-space-6) var(--sc-space-5);
@@ -592,6 +628,10 @@
   }
 
   .request-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .settlement-fields .form-row {
     grid-template-columns: 1fr;
   }
 }

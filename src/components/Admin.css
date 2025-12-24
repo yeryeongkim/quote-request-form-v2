@@ -955,3 +955,33 @@
   margin-top: var(--sc-space-3);
 }
 
+
+/* Settlement Info Box */
+.settlement-info-box {
+  margin-top: var(--sc-space-4);
+  padding: var(--sc-space-4);
+  background: var(--sc-primary-light);
+  border: 1px solid var(--sc-primary);
+  border-radius: var(--sc-radius-md);
+}
+
+.settlement-info-box h4 {
+  font-size: var(--sc-font-size-base);
+  font-weight: var(--sc-font-semibold);
+  color: var(--sc-primary);
+  margin-bottom: var(--sc-space-3);
+  padding-bottom: var(--sc-space-2);
+  border-bottom: 1px solid var(--sc-primary);
+}
+
+.settlement-info-box .detail-row {
+  padding: var(--sc-space-2) 0;
+}
+
+.settlement-info-box .detail-row label {
+  color: var(--sc-text-secondary);
+}
+
+.settlement-info-box .detail-row span {
+  font-weight: var(--sc-font-medium);
+}

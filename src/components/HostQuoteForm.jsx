@@ -33,6 +33,17 @@ function HostQuoteForm() {
     price: '',
     priceIncludes: '',
     paymentMethod: 'onsite',
+    // 정산 정보 (온라인결제 시)
+    settlementInfo: {
+      bankName: '',
+      accountNumber: '',
+      accountHolder: '',
+      sortCode: '',        // UK
+      routingNumber: '',   // USA
+      branchName: '',      // Japan
+      transitNumber: '',   // Canada
+      institutionNumber: '', // Canada
+    }
   });
 
   // 유효하지 않은 국가 코드인 경우 기본 국가로 리다이렉트
@@ -140,6 +151,7 @@ function HostQuoteForm() {
 
       if (quoteData) {
         setExistingQuote(quoteData);
+        const existingSettlementInfo = quoteData.settlement_info || {};
         setFormData({
           spaceName: quoteData.space_name || '',
           spacePhoto: null,
@@ -147,6 +159,16 @@ function HostQuoteForm() {
           price: quoteData.price ? quoteData.price.toLocaleString() : '',
           priceIncludes: quoteData.price_includes || '',
           paymentMethod: quoteData.payment_method || 'onsite',
+          settlementInfo: {
+            bankName: existingSettlementInfo.bankName || '',
+            accountNumber: existingSettlementInfo.accountNumber || '',
+            accountHolder: existingSettlementInfo.accountHolder || '',
+            sortCode: existingSettlementInfo.sortCode || '',
+            routingNumber: existingSettlementInfo.routingNumber || '',
+            branchName: existingSettlementInfo.branchName || '',
+            transitNumber: existingSettlementInfo.transitNumber || '',
+            institutionNumber: existingSettlementInfo.institutionNumber || '',
+          }
         });
       }
 
@@ -184,6 +206,17 @@ function HostQuoteForm() {
     const value = e.target.value.replace(/[^0-9]/g, '');
     const formatted = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     setFormData((prev) => ({ ...prev, price: formatted }));
+  };
+
+  const handleSettlementInfoChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      settlementInfo: {
+        ...prev.settlementInfo,
+        [name]: value,
+      }
+    }));
   };
 
   const handleFileChange = (e) => {
@@ -284,6 +317,8 @@ function HostQuoteForm() {
         price_includes: formData.priceIncludes,
         payment_method: formData.paymentMethod,
         status: isOnsite ? 'sent' : 'pending',
+        // 온라인결제인 경우 정산 정보 저장
+        settlement_info: !isOnsite ? formData.settlementInfo : null,
       };
 
       let savedQuoteId;
@@ -589,6 +624,142 @@ function HostQuoteForm() {
             </label>
           </div>
         </div>
+
+        {/* 온라인결제 선택 시 정산 정보 입력 */}
+        {formData.paymentMethod === 'online' && !isSent && (
+          <div className="form-section settlement-section">
+            <h3>{t(country, 'settlementInfo')}</h3>
+            <p className="section-desc">{t(country, 'settlementInfoDesc')}</p>
+
+            <div className="settlement-fields">
+              {/* 공통 필드: 은행명 */}
+              <div className="form-group">
+                <label htmlFor="bankName">{t(country, 'bankName')} <span className="required">{t(country, 'required')}</span></label>
+                <input
+                  type="text"
+                  id="bankName"
+                  name="bankName"
+                  value={formData.settlementInfo.bankName}
+                  onChange={handleSettlementInfoChange}
+                  placeholder={t(country, 'bankNamePlaceholder')}
+                  required
+                />
+              </div>
+
+              {/* Japan: 지점명 */}
+              {country === 'japan' && (
+                <div className="form-group">
+                  <label htmlFor="branchName">{t(country, 'branchName')} <span className="required">{t(country, 'required')}</span></label>
+                  <input
+                    type="text"
+                    id="branchName"
+                    name="branchName"
+                    value={formData.settlementInfo.branchName}
+                    onChange={handleSettlementInfoChange}
+                    placeholder={t(country, 'branchNamePlaceholder')}
+                    required
+                  />
+                </div>
+              )}
+
+              {/* UK: Sort Code */}
+              {country === 'uk' && (
+                <div className="form-group">
+                  <label htmlFor="sortCode">{t(country, 'sortCode')} <span className="required">{t(country, 'required')}</span></label>
+                  <input
+                    type="text"
+                    id="sortCode"
+                    name="sortCode"
+                    value={formData.settlementInfo.sortCode}
+                    onChange={handleSettlementInfoChange}
+                    placeholder={t(country, 'sortCodePlaceholder')}
+                    maxLength={8}
+                    required
+                  />
+                </div>
+              )}
+
+              {/* USA: Routing Number */}
+              {country === 'usa' && (
+                <div className="form-group">
+                  <label htmlFor="routingNumber">{t(country, 'routingNumber')} <span className="required">{t(country, 'required')}</span></label>
+                  <input
+                    type="text"
+                    id="routingNumber"
+                    name="routingNumber"
+                    value={formData.settlementInfo.routingNumber}
+                    onChange={handleSettlementInfoChange}
+                    placeholder={t(country, 'routingNumberPlaceholder')}
+                    maxLength={9}
+                    required
+                  />
+                </div>
+              )}
+
+              {/* Canada: Transit Number + Institution Number */}
+              {country === 'canada' && (
+                <>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="transitNumber">{t(country, 'transitNumber')} <span className="required">{t(country, 'required')}</span></label>
+                      <input
+                        type="text"
+                        id="transitNumber"
+                        name="transitNumber"
+                        value={formData.settlementInfo.transitNumber}
+                        onChange={handleSettlementInfoChange}
+                        placeholder={t(country, 'transitNumberPlaceholder')}
+                        maxLength={5}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="institutionNumber">{t(country, 'institutionNumber')} <span className="required">{t(country, 'required')}</span></label>
+                      <input
+                        type="text"
+                        id="institutionNumber"
+                        name="institutionNumber"
+                        value={formData.settlementInfo.institutionNumber}
+                        onChange={handleSettlementInfoChange}
+                        placeholder={t(country, 'institutionNumberPlaceholder')}
+                        maxLength={3}
+                        required
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* 공통 필드: 계좌번호 */}
+              <div className="form-group">
+                <label htmlFor="accountNumber">{t(country, 'accountNumber')} <span className="required">{t(country, 'required')}</span></label>
+                <input
+                  type="text"
+                  id="accountNumber"
+                  name="accountNumber"
+                  value={formData.settlementInfo.accountNumber}
+                  onChange={handleSettlementInfoChange}
+                  placeholder={t(country, 'accountNumberPlaceholder')}
+                  required
+                />
+              </div>
+
+              {/* 공통 필드: 예금주 */}
+              <div className="form-group">
+                <label htmlFor="accountHolder">{t(country, 'accountHolder')} <span className="required">{t(country, 'required')}</span></label>
+                <input
+                  type="text"
+                  id="accountHolder"
+                  name="accountHolder"
+                  value={formData.settlementInfo.accountHolder}
+                  onChange={handleSettlementInfoChange}
+                  placeholder={t(country, 'accountHolderPlaceholder')}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 현장결제 선택 시 수수료 결제 안내 */}
         {formData.paymentMethod === 'onsite' && !isSent && (

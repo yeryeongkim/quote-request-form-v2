@@ -317,6 +317,67 @@
   cursor: not-allowed;
 }
 
+/* Settlement Section */
+.template-modal .settlement-section {
+  background: var(--sc-primary-light);
+  padding: var(--sc-space-5);
+  border-radius: var(--sc-radius-lg);
+  border: 1px solid var(--sc-primary);
+  margin-top: var(--sc-space-2);
+}
+
+.template-modal .settlement-section .template-label {
+  color: var(--sc-primary);
+  font-weight: var(--sc-font-semibold);
+}
+
+.settlement-desc {
+  font-size: var(--sc-font-size-sm);
+  color: var(--sc-text-secondary);
+  margin-bottom: var(--sc-space-4);
+  line-height: var(--sc-leading-relaxed);
+}
+
+.settlement-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sc-space-4);
+}
+
+.settlement-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sc-space-2);
+}
+
+.settlement-field label {
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-medium);
+  color: var(--sc-text-primary);
+}
+
+.settlement-field input {
+  width: 100%;
+  padding: var(--sc-space-3) var(--sc-space-4);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  font-size: var(--sc-font-size-md);
+  box-sizing: border-box;
+  transition: border-color var(--sc-transition-normal), box-shadow var(--sc-transition-normal);
+}
+
+.settlement-field input:focus {
+  outline: none;
+  border-color: var(--sc-primary);
+  box-shadow: 0 0 0 3px var(--sc-primary-light);
+}
+
+.settlement-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sc-space-4);
+}
+
 @media (max-width: 500px) {
   .template-modal {
     padding: var(--sc-space-6) var(--sc-space-5);
@@ -328,5 +389,9 @@
 
   .currency-select {
     width: 100%;
+  }
+
+  .settlement-row {
+    grid-template-columns: 1fr;
   }
 }
