@@ -37,6 +37,12 @@ const MIGRATION_STATUS_OPTIONS = [
   { value: 'rejected', label: '거절', color: '#ef4444' },
 ];
 
+// 정산 상태 정의
+const SETTLEMENT_STATUS_OPTIONS = [
+  { value: 'pending', label: '정산 대기', color: '#f59e0b' },
+  { value: 'completed', label: '정산 완료', color: '#10b981' },
+];
+
 function Admin() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -65,6 +71,11 @@ function Admin() {
   const [migrationRequests, setMigrationRequests] = useState([]);
   const [selectedMigration, setSelectedMigration] = useState(null);
   const [migrationStatusFilter, setMigrationStatusFilter] = useState('all');
+
+  // 예약/정산 상태
+  const [bookings, setBookings] = useState([]);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [settlementStatusFilter, setSettlementStatusFilter] = useState('all');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -210,6 +221,25 @@ function Admin() {
         }
       } catch (migrationErr) {
         console.log('Migration requests table may not exist:', migrationErr);
+      }
+
+      // Load bookings with settlements
+      try {
+        const { data: bookingsData, error: bookingsError } = await supabase
+          .from('bookings')
+          .select('*, settlements(*)')
+          .order('created_at', { ascending: false });
+
+        if (!bookingsError && bookingsData) {
+          // Map bookings with settlement info
+          const mappedBookings = bookingsData.map(booking => ({
+            ...booking,
+            settlement: booking.settlements?.[0] || null,
+          }));
+          setBookings(mappedBookings);
+        }
+      } catch (bookingErr) {
+        console.log('Bookings table may not exist:', bookingErr);
       }
 
     } catch (err) {
@@ -633,6 +663,67 @@ function Admin() {
     return option ? option.color : '#f59e0b';
   };
 
+  // 정산 상태 업데이트
+  const updateSettlementStatus = async (settlementId, newStatus) => {
+    try {
+      const updateData = { status: newStatus };
+      if (newStatus === 'completed') {
+        updateData.completed_date = new Date().toISOString().split('T')[0];
+      }
+
+      const { error } = await supabase
+        .from('settlements')
+        .update(updateData)
+        .eq('id', settlementId);
+
+      if (error) throw error;
+
+      // Update local state
+      setBookings(prev => prev.map(b => {
+        if (b.settlement?.id === settlementId) {
+          return {
+            ...b,
+            settlement: { ...b.settlement, status: newStatus, ...updateData }
+          };
+        }
+        return b;
+      }));
+
+      if (selectedBooking?.settlement?.id === settlementId) {
+        setSelectedBooking(prev => ({
+          ...prev,
+          settlement: { ...prev.settlement, status: newStatus, ...updateData }
+        }));
+      }
+
+      alert('정산 상태가 변경되었습니다.');
+    } catch (err) {
+      console.error('Error updating settlement status:', err);
+      alert(`상태 변경 오류: ${err.message}`);
+    }
+  };
+
+  // 예약 필터링
+  const filteredBookings = bookings.filter(b => {
+    if (settlementStatusFilter !== 'all') {
+      const settlementStatus = b.settlement?.status || 'pending';
+      if (settlementStatus !== settlementStatusFilter) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  const getSettlementStatusLabel = (status) => {
+    const option = SETTLEMENT_STATUS_OPTIONS.find(opt => opt.value === status);
+    return option ? option.label : '정산 대기';
+  };
+
+  const getSettlementStatusColor = (status) => {
+    const option = SETTLEMENT_STATUS_OPTIONS.find(opt => opt.value === status);
+    return option ? option.color : '#f59e0b';
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
@@ -681,17 +772,24 @@ function Admin() {
       <div className="admin-tabs">
         <button
           className={`admin-tab ${activeTab === 'quotes' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('quotes'); setSelectedMigration(null); }}
+          onClick={() => { setActiveTab('quotes'); setSelectedMigration(null); setSelectedBooking(null); }}
         >
           견적 요청
           <span className="tab-count">{requests.length}</span>
         </button>
         <button
           className={`admin-tab ${activeTab === 'migrations' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('migrations'); setSelectedRequest(null); }}
+          onClick={() => { setActiveTab('migrations'); setSelectedRequest(null); setSelectedBooking(null); }}
         >
           이관 신청
           <span className="tab-count">{migrationRequests.length}</span>
+        </button>
+        <button
+          className={`admin-tab ${activeTab === 'bookings' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('bookings'); setSelectedRequest(null); setSelectedMigration(null); }}
+        >
+          예약/정산
+          <span className="tab-count">{bookings.length}</span>
         </button>
       </div>
 
@@ -1063,7 +1161,7 @@ function Admin() {
           )}
         </div>
         </>
-        ) : (
+        ) : activeTab === 'migrations' ? (
         <>
         {/* 이관 신청 목록 */}
         <div className="requests-list">
@@ -1201,7 +1299,170 @@ function Admin() {
           )}
         </div>
         </>
-        )}
+        ) : activeTab === 'bookings' ? (
+        <>
+        {/* 예약/정산 목록 */}
+        <div className="requests-list">
+          <div className="list-header">
+            <h2>예약/정산 목록 ({filteredBookings.length}건)</h2>
+          </div>
+
+          <div className="filter-section">
+            <div className="filter-group">
+              <label>정산 상태</label>
+              <select
+                value={settlementStatusFilter}
+                onChange={(e) => setSettlementStatusFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">전체</option>
+                {SETTLEMENT_STATUS_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="loading-state">
+              <p>데이터를 불러오는 중...</p>
+            </div>
+          ) : bookings.length === 0 ? (
+            <div className="empty-state">
+              <p>아직 예약이 없습니다.</p>
+            </div>
+          ) : (
+            <ul className="request-items">
+              {filteredBookings.map((booking) => (
+                <li
+                  key={booking.id}
+                  className={`request-item ${selectedBooking?.id === booking.id ? 'active' : ''}`}
+                  onClick={() => setSelectedBooking(booking)}
+                >
+                  <div className="request-summary">
+                    <span className="request-email">{booking.guest_email}</span>
+                    <span className="request-date">{formatDate(booking.created_at)}</span>
+                  </div>
+                  <div className="request-info">
+                    <span>{booking.booking_date}</span>
+                    <span>{formatPrice(booking.total_amount, booking.currency)}</span>
+                    <span
+                      className="status-badge"
+                      style={{ backgroundColor: getSettlementStatusColor(booking.settlement?.status || 'pending'), color: '#fff' }}
+                    >
+                      {getSettlementStatusLabel(booking.settlement?.status || 'pending')}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* 예약/정산 상세 */}
+        <div className="request-detail">
+          {selectedBooking ? (
+            <>
+              <div className="detail-header">
+                <h2>예약/정산 상세</h2>
+              </div>
+
+              <div className="detail-content">
+                {/* 예약 정보 */}
+                <div className="detail-section">
+                  <h3>예약 정보</h3>
+                  <div className="detail-row">
+                    <label>예약일</label>
+                    <span>{selectedBooking.booking_date}</span>
+                  </div>
+                  <div className="detail-row">
+                    <label>이용 시간</label>
+                    <span>{selectedBooking.booking_time || '-'}</span>
+                  </div>
+                  <div className="detail-row">
+                    <label>게스트 이메일</label>
+                    <span>{selectedBooking.guest_email}</span>
+                  </div>
+                  <div className="detail-row">
+                    <label>인원</label>
+                    <span>{selectedBooking.guest_count}명</span>
+                  </div>
+                  <div className="detail-row">
+                    <label>예약 금액</label>
+                    <span className="price">{formatPrice(selectedBooking.total_amount, selectedBooking.currency)}</span>
+                  </div>
+                  <div className="detail-row">
+                    <label>예약 상태</label>
+                    <span>{selectedBooking.status === 'confirmed' ? '예약 확정' : selectedBooking.status}</span>
+                  </div>
+                </div>
+
+                {/* 정산 정보 */}
+                {selectedBooking.settlement && (
+                  <div className="detail-section">
+                    <h3>정산 정보</h3>
+                    <div className="detail-row">
+                      <label>정산 금액</label>
+                      <span className="price">{formatPrice(selectedBooking.settlement.amount, selectedBooking.settlement.currency)}</span>
+                    </div>
+                    <div className="detail-row">
+                      <label>정산 예정일</label>
+                      <span>{selectedBooking.settlement.scheduled_date || '-'}</span>
+                    </div>
+                    {selectedBooking.settlement.completed_date && (
+                      <div className="detail-row">
+                        <label>정산 완료일</label>
+                        <span>{selectedBooking.settlement.completed_date}</span>
+                      </div>
+                    )}
+                    <div className="detail-row">
+                      <label>정산 상태</label>
+                      <span
+                        className="status-badge-large"
+                        style={{ backgroundColor: getSettlementStatusColor(selectedBooking.settlement.status) }}
+                      >
+                        {getSettlementStatusLabel(selectedBooking.settlement.status)}
+                      </span>
+                    </div>
+
+                    {/* 정산 상태 변경 */}
+                    <div className="status-actions" style={{ marginTop: '16px' }}>
+                      <label style={{ marginRight: '8px' }}>상태 변경:</label>
+                      <select
+                        className="status-select"
+                        value={selectedBooking.settlement.status}
+                        onChange={(e) => updateSettlementStatus(selectedBooking.settlement.id, e.target.value)}
+                      >
+                        {SETTLEMENT_STATUS_OPTIONS.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {!selectedBooking.settlement && (
+                  <div className="detail-section">
+                    <h3>정산 정보</h3>
+                    <p>정산 정보가 없습니다.</p>
+                  </div>
+                )}
+
+                {/* 예약 일시 */}
+                <div className="detail-section">
+                  <h3>예약 생성 일시</h3>
+                  <span>{formatDate(selectedBooking.created_at)}</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="empty-detail">
+              <p>예약을 선택하면 상세 정보가 표시됩니다.</p>
+            </div>
+          )}
+        </div>
+        </>
+        ) : null}
       </div>
     </div>
   );
